@@ -5,15 +5,15 @@ Requires=witness-journal-rdf-projection-service.service emsweb-notebooklm-infere
 
 [Service]
 Type=simple
-WorkingDirectory=/home/emsenn/info/lib/emsenn/services/561-group/services/rsc-quiescent/services/emsweb/services/persistent-notebook-enterprise
+WorkingDirectory=/home/emsenn/info/lib/emsenn/services/561-group/services/engineering-services-section/services/computer-services-section/services/inference-services-section/services/gemini-services-section/services/gemini-notebook-services-section/services/persistent-notebook-enterprise
 ExecStart=/home/emsenn/.config/nvm/versions/node/v24.13.1/bin/node src/serve-explainer-a2a.mjs
 Environment=WITNESS_JOURNAL_RDF_AGENT=http://127.0.0.1:19764/.well-known/agent-card.json
 Environment=NOTEBOOKLM_AGENT=http://127.0.0.1:18436/.well-known/agent-card.json
 Environment=NOTEBOOKLM_AGENT_CARD_NI=ni:///sha-256;XYEzzCCjU-6MFWm3N7vuZMuqNe6_eM7OaUTSc2FyplA
-Environment=PERSISTENT_NOTEBOOK_PROVIDER_CLIENT_MODULE=/home/emsenn/info/lib/emsenn/services/561-group/services/rsc-quiescent/services/emsweb/services/persistent-notebook-enterprise/src/notebooklm-provider-client.mjs
-Environment=PERSISTENT_NOTEBOOK_DATA_ROOT=/home/emsenn/info/lib/emsenn/services/561-group/services/rsc-quiescent/services/emsweb/services/persistent-notebook-enterprise/data
-Environment=PERSISTENT_NOTEBOOK_RUNTIME_ROOT=/home/emsenn/info/lib/emsenn/services/561-group/services/rsc-quiescent/services/emsweb/services/persistent-notebook-enterprise/data/runtime
-Environment=PERSISTENT_NOTEBOOK_EXCHANGE_ROOT=/home/emsenn/info/lib/emsenn/services/561-group/services/rsc-quiescent/services/emsweb/services/persistent-notebook-enterprise/data/artifact-exchange
+Environment=PERSISTENT_NOTEBOOK_PROVIDER_CLIENT_MODULE=/home/emsenn/info/lib/emsenn/services/561-group/services/engineering-services-section/services/computer-services-section/services/inference-services-section/services/gemini-services-section/services/gemini-notebook-services-section/services/persistent-notebook-enterprise/src/notebooklm-provider-client.mjs
+Environment=PERSISTENT_NOTEBOOK_DATA_ROOT=/home/emsenn/info/lib/emsenn/services/561-group/services/engineering-services-section/services/computer-services-section/services/inference-services-section/services/gemini-services-section/services/gemini-notebook-services-section/services/persistent-notebook-enterprise/data
+Environment=PERSISTENT_NOTEBOOK_RUNTIME_ROOT=/home/emsenn/info/lib/emsenn/services/561-group/services/engineering-services-section/services/computer-services-section/services/inference-services-section/services/gemini-services-section/services/gemini-notebook-services-section/services/persistent-notebook-enterprise/data/runtime
+Environment=PERSISTENT_NOTEBOOK_EXCHANGE_ROOT=/home/emsenn/info/lib/emsenn/services/561-group/services/engineering-services-section/services/computer-services-section/services/inference-services-section/services/gemini-services-section/services/gemini-notebook-services-section/services/persistent-notebook-enterprise/data/artifact-exchange
 Environment=PERSISTENT_NOTEBOOK_ARTIFACT_BASE_URL=http://127.0.0.1:18438
 Environment=PERSISTENT_NOTEBOOK_SETTLEMENT_ACCOUNT=eip155:31337:0x7bbb8b1bc2956d64fd88faa4fec2756d91da83b5
 Restart=on-failure
@@ -23,8 +23,8 @@ PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=read-only
 InaccessiblePaths=/home/emsenn/info/lib/emsenn/services/561-group/services/rsc-quiescent/services/emsweb/services/youtube-channel-enterprise
-ReadWritePaths=/home/emsenn/info/lib/emsenn/services/561-group/services/rsc-quiescent/services/emsweb/services/persistent-notebook-enterprise/data
-ReadOnlyPaths=/home/emsenn/info/lib/emsenn/services/561-group/services/rsc-quiescent/services/emsweb/services/persistent-notebook-enterprise/data/credentials /home/emsenn/info/lib/emsenn/services/561-group/services/rsc-quiescent/services/emsweb/services/persistent-notebook-enterprise/data/evm/keystores
+ReadWritePaths=/home/emsenn/info/lib/emsenn/services/561-group/services/engineering-services-section/services/computer-services-section/services/inference-services-section/services/gemini-services-section/services/gemini-notebook-services-section/services/persistent-notebook-enterprise/data
+ReadOnlyPaths=/home/emsenn/info/lib/emsenn/services/561-group/services/engineering-services-section/services/computer-services-section/services/inference-services-section/services/gemini-services-section/services/gemini-notebook-services-section/services/persistent-notebook-enterprise/data/credentials /home/emsenn/info/lib/emsenn/services/561-group/services/engineering-services-section/services/computer-services-section/services/inference-services-section/services/gemini-services-section/services/gemini-notebook-services-section/services/persistent-notebook-enterprise/data/evm/keystores
 ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectKernelLogs=true

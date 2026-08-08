@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/home/emsenn/info/lib/emsenn/services/561-group/services/rsc-quiescent/services/emsweb/services/persistent-notebook-enterprise
+WorkingDirectory=/home/emsenn/info/lib/emsenn/services/561-group/services/engineering-services-section/services/computer-services-section/services/inference-services-section/services/gemini-services-section/services/gemini-notebook-services-section/services/persistent-notebook-enterprise
 ExecStart=/home/emsenn/.config/nvm/versions/node/v24.13.1/bin/node src/artifact-exchange.mjs
 Environment=PERSISTENT_NOTEBOOK_ARTIFACT_HOST=127.0.0.1
 Environment=PERSISTENT_NOTEBOOK_ARTIFACT_PORT=18438
