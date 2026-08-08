@@ -1,0 +1,26 @@
+{
+  "name": "Persistent Notebook Enterprise",
+  "description": "Admits curated cumulative research sources and supplies source-bound NotebookLM video artifacts without transferring provider credentials.",
+  "supportedInterfaces": [
+    { "url": "${BASE_URL}/a2a/jsonrpc", "protocolBinding": "JSONRPC", "tenant": "", "protocolVersion": "1.0" },
+    { "url": "${BASE_URL}/a2a/rest", "protocolBinding": "HTTP+JSON", "tenant": "", "protocolVersion": "1.0" }
+  ],
+  "provider": { "url": "https://emsenn.net/", "organization": "Persistent Notebook Enterprise via A2A Services Section" },
+  "version": "1.0.0",
+  "capabilities": { "streaming": false, "pushNotifications": false, "extensions": [], "extendedAgentCard": false },
+  "securitySchemes": {},
+  "securityRequirements": [],
+  "defaultInputModes": ["application/rmn+cbor"],
+  "defaultOutputModes": ["application/rmn+cbor"],
+  "skills": [{
+    "id": "persistent-notebook-explainer",
+    "name": "Persistent notebook explainer",
+    "description": "Admits one cumulative source packet and returns one exact explainer artifact or typed refusal.",
+    "tags": ["notebooklm", "explainer", "curated-cumulative"],
+    "examples": [],
+    "inputModes": ["application/rmn+cbor"],
+    "outputModes": ["application/rmn+cbor"],
+    "securityRequirements": []
+  }],
+  "signatures": []
+}

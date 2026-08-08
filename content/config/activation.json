@@ -1,0 +1,73 @@
+{
+  "status": "frozen-provider-runtime-misaddressed",
+  "reason": "The standing grant, pinned provider identity, and 35-source inventory remain historical receipt evidence, but the declared local user-systemd topology is not deployed: its three customer unit files are absent and the provider units they require point to a removed legacy checkout. Runtime authority therefore fails closed until the provider supplies a current deployment binding.",
+  "gates": {
+    "enterpriseAccountProvisioned": true,
+    "witnessJournalProviderContracted": true,
+    "notebookProviderContractAccepted": true,
+    "signedA2aCustomerFaceImplemented": true,
+    "signedMathClimateVideoFaceImplemented": true,
+    "explainerReplayBackendImplemented": true,
+    "bearerArtifactExchangeImplemented": true,
+    "notebookProviderA2aSourceClientImplemented": true,
+    "notebookProviderA2aInventoryClientImplemented": true,
+    "notebookProviderA2aVideoClientImplemented": true,
+    "signedNotebookProviderAgentCardDeployed": false,
+    "signedCustomerExplainerAgentCardDeployed": false,
+    "customerBearerArtifactIngressDeployed": false,
+    "signedAgentCardAndArtifactIngressDeployed": false,
+    "sourceLifecyclePolicyImplemented": true,
+    "sourceLifecyclePolicyLiveActivated": true,
+    "currentSourceInventoryAdmitted": true,
+    "unofficialNotebookLmAutomationAccepted": true
+  },
+  "safeWhileRefused": [
+    "read notebook identity and law",
+    "form source-reconciliation and video demands",
+    "validate source, video, capacity, and artifact-exchange contracts with explicit fixture identities",
+    "serve signed A2A refusal and fixture-only bearer artifact exchange"
+  ],
+  "forbiddenWhileRefused": [
+    "durable live source-state admission",
+    "deletion or retirement of any notebook source",
+    "live NotebookLM invocation",
+    "durable live video-artifact admission",
+    "customer artifact sale"
+  ],
+  "authorizedWhileActive": [
+    "accept an exact explainer order from urn:ame:youtube-channel-enterprise",
+    "accept an exact cinematic order from urn:ame:mathematics-youtube-channel-enterprise",
+    "accept an exact explainer order from urn:ame:climate-youtube-channel-enterprise",
+    "add one digest-bound curated source while preserving every admitted incumbent",
+    "request one source-bound NotebookLM explainer under the provider capacity law",
+    "import and deliver the exact MP4 through nested bearer capabilities"
+  ],
+  "withheldWhileActive": [
+    "source deletion or retirement",
+    "foreign notebook or customer work",
+    "YouTube credential access",
+    "YouTube upload, scheduling, or publication"
+  ],
+  "runtimeVerification": {
+    "verifiedAt": "2026-07-30T05:56:00.000Z",
+    "declaredPorts": [18436, 18437, 18438, 18439, 18445],
+    "observed": "all declared loopback endpoints refused connection; the three customer units were not found; witness-journal-rdf-projection-service and the legacy provider units were masked or absent",
+    "providerReplacement": "@red-cup-engineering/notebooklm-services-section exposes a separately configured trusted local read-only MCP library; it is not evidence that this customer A2A/artifact deployment is live",
+    "restorationRequirement": "one provider-authored current deployment binding and installed unit set whose health checks prove the exact pinned cards and artifact ingress"
+  },
+  "evidence": {
+    "settlementAccount": "eip155:31337:0x7bbb8b1bc2956d64fd88faa4fec2756d91da83b5",
+    "inventoryAdmission": "urn:sha256:5b02b9c25c740e6530c824ea6452fcd89d09b495b2d5ea3287f472fcc2ffab50",
+    "providerOperation": "urn:sha256:14d958f78d63912910a08bd7c6f3cfab7dacf33f7fa2eedba48fcb58e5a7d4d8",
+    "sourceCount": 35,
+    "sourceSetDigest": "sha256:30760140dfe4eb013b9098a4ec2bcbffa09b378cf199b2d6d3946eb4d03a2328",
+    "inventoryMutation": { "added": 0, "deleted": 0 },
+    "explainerAgentCard": "ni:///sha-256;SOpIqFy1QqT08n1e3pTUTQE35B2_MV-wqOyYdxPgeEw",
+    "explainerAgentUrl": "http://127.0.0.1:18437/.well-known/agent-card.json",
+    "customerArtifactBaseUrl": "http://127.0.0.1:18438",
+    "providerArtifactBaseUrl": "http://127.0.0.1:18439",
+    "channelVideoAgentCard": "ni:///sha-256;QfbNMmKVfegw8gsyJr5dj0LT4wTTsAunJKX10xmQaZk",
+    "channelVideoAgentUrl": "http://127.0.0.1:18445/.well-known/agent-card.json"
+  },
+  "recordedOn": "2026-07-22"
+}

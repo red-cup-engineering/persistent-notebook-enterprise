@@ -1,0 +1,35 @@
+{
+  "type": "PersistentNotebookEnterpriseDecision",
+  "id": "refuse-unapproved-source-lifecycle",
+  "status": "active-refusal",
+  "decidedOn": "2026-07-21",
+  "notebook": "urn:emsenn:notebooklm-notebook:67510ce7-79b3-4caa-b25c-28e0d3911b5a",
+  "decision": "No automated service may replace, delete, or reinterpret the pre-existing notebook source set until its owner accepts an explicit source-lifecycle policy.",
+  "basis": [
+    "The exact notebook predates this enterprise and may contain source relationships that are not represented on this settlement's plate.",
+    "The provider's currently proved mutation operation is replace-all-staged: it stages a complete desired set and then deletes every source named by the accepted prior observation.",
+    "Constituting the notebook as an enterprise establishes custody; it does not retroactively authorize destructive source replacement."
+  ],
+  "admissiblePolicyChoices": [
+    {
+      "policy": "curated-cumulative-corpus",
+      "effect": "Preserve admitted existing sources and add or retire sources only through explicit collection-level decisions; requires a provider operation finer than replace-all-staged."
+    },
+    {
+      "policy": "rolling-production-corpus",
+      "effect": "Treat the notebook as a production workspace whose complete source set may be replaced by each admitted research packet."
+    },
+    {
+      "policy": "fixed-reference-corpus",
+      "effect": "Keep the notebook's source set unchanged and permit generation only from a successfully observed and admitted current state."
+    }
+  ],
+  "recommendedNextEvidence": "Observe the current source IDs and titles without mutation, project that observation for owner review, and then accept one policy; observation still requires the provider's network capability and must not be represented as completed before it occurs.",
+  "doesNotAuthorize": [
+    "a Google network call",
+    "a source upload",
+    "a source deletion",
+    "a channel publication",
+    "credential transfer"
+  ]
+}
