@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@red-cup-engineering/a2a-services-section": "workspace:*",
-    "@red-cup-engineering/semantic-content-identify-service": "workspace:*",
+    "@red-cup-engineering/computer-content-address-engineering-services-section": "workspace:*",
     "@red-cup-engineering/witness-journal-document-service": "workspace:*"
   },
   "bin": {

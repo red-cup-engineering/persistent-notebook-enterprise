@@ -4,7 +4,7 @@ import { querySettlementRecords } from "@red-cup-engineering/witness-journal-doc
 import { a2aResultParts } from "@red-cup-engineering/a2a-services-section/a2a-client";
 import { agentCardSignatureEvidence } from "@red-cup-engineering/a2a-services-section/agent-card-signing";
 import { extractSenPart, sendSenTask, userSenMessage } from "@red-cup-engineering/a2a-services-section/sen-part";
-import { admitJsonSemanticContent, EMPTY_WITNESS_ROOT, identifyJsonSemanticContent } from "@red-cup-engineering/semantic-content-identify-service";
+import { admitJsonSemanticContent, EMPTY_WITNESS_ROOT, identifyJsonSemanticContent } from "@red-cup-engineering/computer-content-address-engineering-services-section/semantic-content-identity";
 const A2A_CARRIER_KIND = "rsc-quiescent.a2a-json";
 const semanticBytes = (value) => identifyJsonSemanticContent({ objectKind: A2A_CARRIER_KIND, value, witnessRoot: EMPTY_WITNESS_ROOT }).bytes;
 const decodeSemantic = (bytes) => admitJsonSemanticContent({ bytes, objectKind: A2A_CARRIER_KIND }).value;
