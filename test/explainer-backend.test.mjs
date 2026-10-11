@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { startWitnessJournalProviderProcess } from "@red-cup-engineering/witness-journal-rdf-projection-service/test-provider";
+import { startWitnessJournalProviderProcess } from "@red-cup-engineering/witness-journal-document-service/test-provider";
 import { advanceExplainerOrder, explainerOrderStates } from "../src/explainer-backend.mjs";
 import { serveArtifactExchange } from "../src/artifact-exchange.mjs";
 import { contentId, digest, notebookIdentity, sourceLifecyclePolicy } from "../src/notebook.mjs";
@@ -23,7 +23,7 @@ test("one explainer order settles once, replays without provider calls, and serv
   const options = { at: NOW, dataRoot, exchangeRoot, runtimeRoot, artifactBaseUrl: baseUrl, settlement: SETTLEMENT, witnessJournalAgentUrl: witnessJournal.agentCardUrl, tokenBytes: Buffer.alloc(32, 7) };
   const first = await advanceExplainerOrder(order, services, options), replay = await advanceExplainerOrder(order, services, options);
   assert.deepEqual(replay, first); assert.equal(sourceCalls, 1); assert.equal(videoCalls, 1); assert.equal(first.disposition, "artifact");
-  assert.deepEqual(explainerOrderStates(dataRoot, order.id).map((row) => row.status), ["accepted", "source-admitted", "video-admitted", "delivered"]);
+  assert.deepEqual((await explainerOrderStates(order.id, options)).map((row) => row.status), ["accepted", "source-admitted", "video-admitted", "delivered"]);
   assert.equal((await fetch(first.delivery.artifact.url)).status, 401);
   const response = await fetch(first.delivery.artifact.url, { headers: { Authorization: `Bearer ${first.delivery.artifact.authorization.token}` } }); assert.equal(response.status, 200); assert.deepEqual(Buffer.from(await response.arrayBuffer()), bytes);
   const secondOrder = exact({ ...orderBody, prompt: "Explain this again." }); const secondResult = await advanceExplainerOrder(secondOrder, services, { ...options, tokenBytes: Buffer.alloc(32, 8) });
@@ -37,5 +37,5 @@ test("in-progress source work is resumed under the same operation before video p
   const options = { at: NOW, dataRoot, runtimeRoot: join(root, "runtime"), settlement: SETTLEMENT, witnessJournalAgentUrl: witnessJournal.agentCardUrl };
   const first = await advanceExplainerOrder(order, services, options); assert.equal(first.phase, "source");
   const second = await advanceExplainerOrder(order, services, options); assert.equal(observedOperation, expectedSourceOperation); assert.equal(second.operation, expectedVideoOperation); assert.equal(second.phase, "video");
-  assert.deepEqual(explainerOrderStates(dataRoot, order.id).map((row) => row.status), ["accepted", "source-in-progress", "source-admitted", "video-in-progress"]);
+  assert.deepEqual((await explainerOrderStates(order.id, options)).map((row) => row.status), ["accepted", "source-in-progress", "source-admitted", "video-in-progress"]);
 });

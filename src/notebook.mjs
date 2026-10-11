@@ -3,7 +3,8 @@ import { createHash } from "node:crypto";
 import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createSettlementStore, recordSettlementRecord } from "@red-cup-engineering/witness-journal-rdf-projection-service/client";
+import { recordSettlementRecord } from "@red-cup-engineering/witness-journal-document-service";
+import { createFilesystemWitnessJournalBinding } from "@red-cup-engineering/witness-journal-document-service/filesystem-provider";
 
 export const NODE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const ACTOR = "urn:ame:persistent-notebook-enterprise";
@@ -94,8 +95,8 @@ async function record(category, value, options = {}) {
     await recordSettlementRecord({ agentUrl: options.witnessJournalAgentUrl ?? process.env.WITNESS_JOURNAL_RDF_AGENT, settlement: options.settlement, actor: ACTOR, category, recordedAt: at, record: { ...value } });
     return;
   }
-  const store = createSettlementStore({ settlementRoot: NODE_ROOT, agentUrl: options.witnessJournalAgentUrl ?? process.env.WITNESS_JOURNAL_RDF_AGENT });
-  await store.record({ category, recordedAt: at, record: { ...value } });
+  const { custody, categoryIndex } = await createFilesystemWitnessJournalBinding(join(NODE_ROOT, "data", "witness-journal"));
+  await recordSettlementRecord({ custody, categoryIndex, settlement: null, actor: ACTOR, category, recordedAt: at, record: { ...value } });
 }
 
 export async function admitInventoryObservationResult(demand, activity, options = {}) {

@@ -1,6 +1,6 @@
 [Unit]
 Description=emsWeb persistent notebook bearer artifact exchange
-After=network.target
+After=network.target witness-journal-rdf-projection-service.service
 
 [Service]
 Type=simple
@@ -8,6 +8,7 @@ WorkingDirectory=/home/emsenn/info/lib/emsenn/services/561-group/services/engine
 ExecStart=/home/emsenn/.config/nvm/versions/node/v24.13.1/bin/node src/artifact-exchange.mjs
 Environment=PERSISTENT_NOTEBOOK_ARTIFACT_HOST=127.0.0.1
 Environment=PERSISTENT_NOTEBOOK_ARTIFACT_PORT=18438
+Environment=WITNESS_JOURNAL_RDF_AGENT=http://127.0.0.1:19764/.well-known/agent-card.json
 Restart=on-failure
 RestartSec=5s
 NoNewPrivileges=true

@@ -4,9 +4,9 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { querySettlementRecords } from "@red-cup-engineering/witness-journal-rdf-projection-service/client";
-import { startWitnessJournalProviderProcess } from "@red-cup-engineering/witness-journal-rdf-projection-service/test-provider";
-import { extractRmnPart, parseA2aMessage, userRmnMessage } from "@red-cup-engineering/a2a-rmn-part-service";
+import { querySettlementRecords } from "@red-cup-engineering/witness-journal-document-service";
+import { startWitnessJournalProviderProcess } from "@red-cup-engineering/witness-journal-document-service/test-provider";
+import { extractSenPart, parseA2aMessage, userSenMessage } from "@red-cup-engineering/a2a-services-section/sen-part";
 import { admitJsonSemanticContent, EMPTY_WITNESS_ROOT, identifyJsonSemanticContent } from "@red-cup-engineering/semantic-content-identify-service";
 
 const A2A_JSON_OBJECT_KIND = "rsc-quiescent.a2a-json";
@@ -24,11 +24,11 @@ test("the A2A executor returns a typed zero-effect refusal while live notebook a
   const sourceBytes = Buffer.from("research");
   const orderBody = { type: "PersistentNotebookExplainerOrder", customer: "urn:ame:youtube-channel-enterprise", provider: "urn:ame:persistent-notebook-enterprise", notebook: notebookIdentity().id, sourceLifecyclePolicy: "curated-cumulative-corpus", source: { bytes: sourceBytes, digest: digest(sourceBytes), title: "Research", mediaType: "text/markdown", byteLength: sourceBytes.length }, prompt: "Explain this relationally.", format: "explainer", style: "auto", language: "en" };
   const order = { id: contentId(orderBody), ...orderBody };
-  const message = userRmnMessage(semanticBytes(["persistent-notebook-explainer-order", order]), "order.rmn.cbor", "00000000-0000-4000-8000-000000000001");
+  const message = userSenMessage(semanticBytes(["persistent-notebook-explainer-order", order]), "order.sen.cbor", "00000000-0000-4000-8000-000000000001");
   const execution = spawnSync(process.execPath, [new URL("../src/explainer-a2a-executor.mjs", import.meta.url).pathname], { input: JSON.stringify(message), encoding: "utf8", env: { ...process.env, PERSISTENT_NOTEBOOK_NOW: NOW, PERSISTENT_NOTEBOOK_ACTIVATION: activationPath } });
   rmSync(fixture, { recursive: true, force: true });
   assert.equal(execution.status, 0, execution.stderr);
-  const response = parseA2aMessage(JSON.parse(execution.stdout)), result = decodeSemantic(extractRmnPart(response.parts).bytes);
+  const response = parseA2aMessage(JSON.parse(execution.stdout)), result = decodeSemantic(extractSenPart(response.parts).bytes);
   assert.equal(result[0], "persistent-notebook-explainer-result");
   assert.equal(result[1].code, "provider-not-activated"); assert.equal(result[1].retryable, true); assert.deepEqual(result[1].externalEffects, []);
 });
@@ -132,7 +132,7 @@ test("an observe-only provider receipt becomes a distinct notebook inventory adm
   const demand = formInventoryObservationDemand(), operation = `urn:sha256:${"7".repeat(64)}`;
   const admission = await admitInventoryObservationResult(demand, providerInventoryActivity(demand, operation), { providerOperation: operation, at: NOW, dataRoot: root, witnessJournalAgentUrl: witnessJournal.agentCardUrl, settlement: TEST_SETTLEMENT });
   assert.equal(admission.type, "PersistentNotebookInventoryObservationAdmission"); assert.deepEqual(admission.finalSourceIds, ["source-incumbent-000001"]);
-  const records = await querySettlementRecords("persistent-notebook.inventory-observation-admission"); assert.equal(records.length, 1);});
+  const records = await querySettlementRecords("persistent-notebook.inventory-observation-admission", { agentUrl: witnessJournal.agentCardUrl }); assert.equal(records.length, 1);});
 
 test("inventory admission refuses a receipt that claims mutation", async (t) => {
   const root = mkdtempSync(join(tmpdir(), "persistent-notebook-inventory-mutation-")), witnessJournal = await startWitnessJournalProviderProcess();
@@ -148,7 +148,7 @@ test("a provider reconciliation receipt becomes a notebook-owned source-state ad
   const admission = await admitSourceReconciliationResult(demand, providerSourceResult(demand), { at: NOW, dataRoot: root, witnessJournalAgentUrl: witnessJournal.agentCardUrl, settlement: TEST_SETTLEMENT });
   assert.equal(admission.notebook, notebookIdentity().id);
   assert.equal(admission.providerReceipt.startsWith("urn:sha256:"), true);
-  const records = await querySettlementRecords("persistent-notebook.source-state-admission");
+  const records = await querySettlementRecords("persistent-notebook.source-state-admission", { agentUrl: witnessJournal.agentCardUrl });
   assert.equal(records.length, 1);});
 
 test("source-state admission refuses a cumulative receipt that deletes an incumbent", async (t) => {
@@ -189,7 +189,7 @@ test("an exact provider MP4 is imported onto the notebook plate and witnessed", 
   assert.equal(admission.mediaType, "video/mp4"); assert.equal(admission.videoFormat, "explainer");
   assert.equal(admission.providerArtifactId, "video-provider-000001");
   assert.deepEqual(readFileSync(join(dataRoot, "artifacts", `${admission.sha256.slice(7)}.mp4`)), readFileSync(providerPath));
-  const records = await querySettlementRecords("persistent-notebook.video-artifact-admission");
+  const records = await querySettlementRecords("persistent-notebook.video-artifact-admission", { agentUrl: witnessJournal.agentCardUrl });
   assert.equal(records.length, 1);});
 
 test("artifact admission refuses a carrier outside the provider export boundary", async (t) => {

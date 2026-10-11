@@ -10,16 +10,16 @@
   "capabilities": { "streaming": false, "pushNotifications": false, "extensions": [], "extendedAgentCard": false },
   "securitySchemes": {},
   "securityRequirements": [],
-  "defaultInputModes": ["application/rmn+cbor"],
-  "defaultOutputModes": ["application/rmn+cbor"],
+  "defaultInputModes": ["application/sen+cbor"],
+  "defaultOutputModes": ["application/sen+cbor"],
   "skills": [{
     "id": "persistent-notebook-explainer",
     "name": "Persistent notebook explainer",
     "description": "Admits one cumulative source packet and returns one exact explainer artifact or typed refusal.",
     "tags": ["notebooklm", "explainer", "curated-cumulative"],
     "examples": [],
-    "inputModes": ["application/rmn+cbor"],
-    "outputModes": ["application/rmn+cbor"],
+    "inputModes": ["application/sen+cbor"],
+    "outputModes": ["application/sen+cbor"],
     "securityRequirements": []
   }],
   "signatures": []
