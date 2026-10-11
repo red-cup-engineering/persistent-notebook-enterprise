@@ -1,15 +1,15 @@
 import { randomBytes } from "node:crypto";
 import { existsSync, lstatSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
-import { querySettlementRecords, recordSettlementRecord } from "@red-cup-engineering/witness-journal-rdf-projection-service/client";
+import { querySettlementRecords, recordSettlementRecord } from "@red-cup-engineering/witness-journal-document-service";
 import { ACTOR, NODE_ROOT, contentId, digest, sourceLifecyclePolicy } from "./notebook.mjs";
 
 const CATEGORY = "persistent-notebook.explainer-order-state";
 const NODE_ID = "persistent-notebook-enterprise";
 function exact(value) { if (!value || typeof value !== "object") return false; const { id, ...body } = value; return id === contentId(body); }
-async function states(root, orderId) { return (await querySettlementRecords(CATEGORY)).filter((row) => row.order === orderId).sort((a, b) => Number(a.sequence) - Number(b.sequence)); }
+async function states(orderId, options) { return (await querySettlementRecords(CATEGORY, { agentUrl: options.witnessJournalAgentUrl ?? process.env.WITNESS_JOURNAL_RDF_AGENT })).filter((row) => row.order === orderId).sort((a, b) => Number(a.sequence) - Number(b.sequence)); }
 async function append(order, status, fields, options) {
-  const root = resolve(options.dataRoot ?? join(NODE_ROOT, "data")); const prior = states(root, order.id).at(-1); const at = options.at ?? new Date().toISOString();
+  const prior = (await states(order.id, options)).at(-1); const at = options.at ?? new Date().toISOString();
   const body = { type: "PersistentNotebookExplainerOrderState", order: order.id, status, sequence: Number(prior?.sequence ?? 0) + 1, ...fields, recordedAt: at };
   const row = { id: contentId(body), ...body };
   await recordSettlementRecord({ agentUrl: options.witnessJournalAgentUrl ?? process.env.WITNESS_JOURNAL_RDF_AGENT, settlement: options.settlement, actor: ACTOR, category: CATEGORY, recordedAt: at, record: { ...row } });
@@ -27,7 +27,7 @@ export async function advanceExplainerOrder(order, services, options = {}) {
   const dataRoot = resolve(options.dataRoot ?? join(NODE_ROOT, "data")), runtimeRoot = resolve(options.runtimeRoot ?? join(NODE_ROOT, "content/runtime/explainer-locks")); mkdirSync(runtimeRoot, { recursive: true });
   const lock = join(runtimeRoot, order.id.slice(-64)); try { mkdirSync(lock); } catch (error) { if (error?.code === "EEXIST") return { disposition: "in-progress", order: order.id, phase: "concurrent-invocation", retryAfterSeconds: 5 }; throw error; }
   try {
-    let current = states(dataRoot, order.id).at(-1);
+    let current = (await states(order.id, options)).at(-1);
     if (current?.status === "delivered") return current.result;
     if (!current) current = await append(order, "accepted", { sourceDigest: order.source.digest, sourceOperation: contentId({ order: order.id, phase: "source-reconciliation" }) }, options);
     if (["accepted", "source-in-progress"].includes(current.status)) {
@@ -55,4 +55,4 @@ export async function advanceExplainerOrder(order, services, options = {}) {
   } finally { rmSync(lock, { recursive: true, force: true }); }
 }
 
-export function explainerOrderStates(dataRoot, orderId) { return states(resolve(dataRoot), orderId); }
+export function explainerOrderStates(orderId, options = {}) { return states(orderId, options); }

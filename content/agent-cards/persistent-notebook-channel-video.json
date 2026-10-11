@@ -10,16 +10,16 @@
   "capabilities": { "streaming": false, "pushNotifications": false, "extensions": [], "extendedAgentCard": false },
   "securitySchemes": {},
   "securityRequirements": [],
-  "defaultInputModes": ["application/rmn+cbor"],
-  "defaultOutputModes": ["application/rmn+cbor"],
+  "defaultInputModes": ["application/sen+cbor"],
+  "defaultOutputModes": ["application/sen+cbor"],
   "skills": [{
     "id": "persistent-notebook-channel-video",
     "name": "Persistent notebook channel video",
     "description": "Admits one exact Math cinematic or Climate explainer order and returns a bounded artifact capability or typed refusal.",
     "tags": ["notebooklm", "cinematic", "explainer", "curated-cumulative"],
     "examples": [],
-    "inputModes": ["application/rmn+cbor"],
-    "outputModes": ["application/rmn+cbor"],
+    "inputModes": ["application/sen+cbor"],
+    "outputModes": ["application/sen+cbor"],
     "securityRequirements": []
   }],
   "signatures": []
