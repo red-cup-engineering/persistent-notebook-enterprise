@@ -15,7 +15,7 @@
   "dependencies": {
     "@red-cup-engineering/a2a-agent-card-discovery-service": "1.0.1",
     "@red-cup-engineering/a2a-contracted-agent-service": "2.0.5",
-    "@red-cup-engineering/a2a-rmn-part-service": "1.0.1",
+    "@red-cup-engineering/a2a-rmn-part-service": "workspace:*",
     "@red-cup-engineering/a2a-rmn-task-client-service": "1.1.1",
     "@red-cup-engineering/semantic-content-identify-service": "0.2.2",
     "@red-cup-engineering/witness-journal-rdf-projection-service": "1.1.0"
