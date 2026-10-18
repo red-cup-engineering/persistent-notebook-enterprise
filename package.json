@@ -4,6 +4,11 @@
   "private": true,
   "type": "module",
   "description": "The sovereign owner of one exact persistent NotebookLM notebook, its admitted source states, and imported artifact products.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/red-cup-engineering/gemini-notebook-services-section.git",
+    "directory": "services/persistent-notebook-enterprise"
+  },
   "scripts": {
     "check": "node --check src/notebook.mjs && node --check src/notebooklm-provider-client.mjs && node --check src/observe-inventory.mjs && node --check src/explainer-backend.mjs && node --check src/video-backend.mjs && node --check src/artifact-exchange.mjs && node --check src/executor-agent.mjs && node --check src/explainer-a2a-executor.mjs && node --check src/video-a2a-executor.mjs && node --check src/serve-explainer-a2a.mjs && node --check src/serve-video-a2a.mjs && node --check test/explainer-backend.test.mjs && node --check test/video-a2a-executor.test.mjs && node --check test/notebook.test.mjs && node --check test/notebooklm-provider-client.test.mjs && node --check test/provider-binding.test.mjs && node --check test/deployment.test.mjs",
     "test": "node --test test/explainer-backend.test.mjs test/video-a2a-executor.test.mjs test/notebook.test.mjs test/notebooklm-provider-client.test.mjs test/provider-binding.test.mjs test/deployment.test.mjs",
