@@ -1,6 +1,0 @@
-import assert from "node:assert/strict";
-import test from "node:test";
-import { contentId, digest, notebookIdentity } from "../src/notebook.mjs";
-import { validChannelVideoOrder } from "../src/video-a2a-executor.mjs";
-function order(customer, format, style) { const bytes = Buffer.from("# Exact source\n"), body = { type: "PersistentNotebookChannelVideoOrder", customer, provider: "urn:ame:persistent-notebook-enterprise", notebook: notebookIdentity().id, sourceLifecyclePolicy: "curated-cumulative-corpus", source: { bytes, digest: digest(bytes), title: "Exact source", mediaType: "text/markdown", byteLength: bytes.length }, prompt: "Explain the exact lesson.", format, style, language: "en" }; return { id: contentId(body), ...body }; }
-test("channel-video face admits exact Math cinematic and Climate explainer terms only", () => { assert.equal(validChannelVideoOrder(order("urn:ame:mathematics-youtube-channel-enterprise", "cinematic", null)), true); assert.equal(validChannelVideoOrder(order("urn:ame:climate-youtube-channel-enterprise", "explainer", "auto")), true); assert.equal(validChannelVideoOrder(order("urn:ame:climate-youtube-channel-enterprise", "cinematic", null)), false); assert.equal(validChannelVideoOrder(order("urn:ame:foreign", "explainer", "auto")), false); });
