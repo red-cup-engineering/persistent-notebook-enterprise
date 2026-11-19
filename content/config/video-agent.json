@@ -1,0 +1,20 @@
+{
+  "type": "PersistentNotebookChannelVideoAgentActivation",
+  "status": "frozen-provider-runtime-misaddressed",
+  "desiredState": "provider-rebinding-required",
+  "serviceUnit": "emsweb-persistent-notebook-channel-video-a2a.service",
+  "host": "127.0.0.1",
+  "port": 18445,
+  "baseUrl": "http://127.0.0.1:18445",
+  "agentCard": "content/agent-cards/persistent-notebook-channel-video.json",
+  "signingKeyDataPath": "data/credentials/persistent-notebook-channel-video-agent-card.pkcs8.pem",
+  "publicJwks": "content/agent-cards/persistent-notebook-channel-video-jwks.json",
+  "signingKid": "persistent-notebook-channel-video-ed25519",
+  "algorithm": "EdDSA",
+  "agentCardIdentity": "ni:///sha-256;QfbNMmKVfegw8gsyJr5dj0LT4wTTsAunJKX10xmQaZk",
+  "agentCardSignatureIdentity": "ni:///sha-256;5-vIlO8MpnNa0-AV22ldewjNgYsKrTxj1sX1CBj1kZM",
+  "timeoutMs": 5500000,
+  "customers": ["urn:ame:mathematics-youtube-channel-enterprise", "urn:ame:climate-youtube-channel-enterprise"],
+  "authorityWithheld": ["source-deletion", "foreign-customer", "youtube-credentials", "youtube-publication"],
+  "runtimeVerification": "2026-07-30: unit not installed and 127.0.0.1:18445 refused connection; required legacy provider and artifact endpoints are unavailable."
+}

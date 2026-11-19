@@ -1,0 +1,21 @@
+{
+  "type": "PersistentNotebookEnterpriseDecision",
+  "id": "adopt-curated-cumulative-source-lifecycle",
+  "status": "implemented-not-live-activated",
+  "decidedOn": "2026-07-21",
+  "notebook": "urn:emsenn:notebooklm-notebook:67510ce7-79b3-4caa-b25c-28e0d3911b5a",
+  "supersedesForImplementation": "refuse-unapproved-source-lifecycle",
+  "decision": "Implement curated-cumulative-corpus as the notebook's source lifecycle: preserve all accepted incumbents, add only absent digest-title identities, and authorize no retirement through the additive operation.",
+  "basis": [
+    "The notebook is meant to accumulate reusable research capital across videos and channel enterprises.",
+    "The provider now exposes a proved curated-cumulative-add operation with exact precondition, idempotent digest-bound reuse, union-set verification, and zero deletion commands.",
+    "This implementation does not itself authorize a Google network call or unofficial live automation."
+  ],
+  "liveStatus": "refused until the activation gates are independently satisfied",
+  "doesNotAuthorize": [
+    "a Google network call",
+    "a source deletion or retirement",
+    "credential transfer",
+    "a channel publication"
+  ]
+}
