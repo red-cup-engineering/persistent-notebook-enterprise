@@ -20,17 +20,17 @@ function validOrder(order) {
     sourceBytes !== null && sourceBytes.length > 0 && sourceBytes.length <= 10 * 1024 * 1024 && order.source.byteLength === sourceBytes.length && order.source.mediaType === "text/markdown" &&
     digest(sourceBytes) === order.source.digest && typeof order.source.title === "string" && order.source.title.trim() !== "" && !Object.prototype.hasOwnProperty.call(order.source, "path");
 }
-function refusal(order, code, at) {
+function rejection(order, code, at) {
   const body = { type: "PersistentNotebookExplainerServiceRefusal", provider: ACTOR, order: order?.id ?? null, disposition: "refused", code, retryable: ["provider-not-activated", "backend-not-contracted"].includes(code), externalEffects: [], refusedAt: at };
   return { id: contentId(body), ...body };
 }
 async function handle(order) {
   const at = process.env.PERSISTENT_NOTEBOOK_NOW ?? new Date().toISOString();
-  if (!validOrder(order)) return refusal(order, "invalid-explainer-order", at);
+  if (!validOrder(order)) return rejection(order, "invalid-explainer-order", at);
   const activation = JSON.parse(readFileSync(process.env.PERSISTENT_NOTEBOOK_ACTIVATION ?? new URL("../content/config/activation.json", import.meta.url), "utf8"));
-  if (activation.status !== "active") return refusal(order, "provider-not-activated", at);
+  if (activation.status !== "active") return rejection(order, "provider-not-activated", at);
   const clientPath = process.env.PERSISTENT_NOTEBOOK_PROVIDER_CLIENT_MODULE;
-  if (!clientPath) return refusal(order, "backend-not-contracted", at);
+  if (!clientPath) return rejection(order, "backend-not-contracted", at);
   const client = await import(pathToFileURL(clientPath).href), services = client.default?.() ?? client.services ?? client;
   return advanceExplainerOrder(order, services, { at, dataRoot: process.env.PERSISTENT_NOTEBOOK_DATA_ROOT, runtimeRoot: process.env.PERSISTENT_NOTEBOOK_RUNTIME_ROOT, exchangeRoot: process.env.PERSISTENT_NOTEBOOK_EXCHANGE_ROOT, artifactBaseUrl: process.env.PERSISTENT_NOTEBOOK_ARTIFACT_BASE_URL, settlement: process.env.PERSISTENT_NOTEBOOK_SETTLEMENT_ACCOUNT, witnessJournalAgentUrl: process.env.SEAVT_DOCUMENT_AGENT });
 }
