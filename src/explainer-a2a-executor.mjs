@@ -1,7 +1,8 @@
 #!/usr/bin/env node
+import { identity } from "@red-cup-engineering/signcell/values";
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
-import { agentSenMessage, extractSenPart, parseA2aMessage } from "@red-cup-engineering/a2a-engine/sen-part";
+import { agentSenMessage, extractSenPart } from "@red-cup-engineering/a2a-engine/sen-part";
 import { admitJsonSemanticContent, EMPTY_WITNESS_ROOT, identifyJsonSemanticContent } from "@red-cup-engineering/computer-code-engine/semiotic-expression-notation/semantic-content-identity";
 const A2A_CARRIER_KIND = "rsc-quiescent.a2a-json";
 const semanticBytes = (value) => identifyJsonSemanticContent({ objectKind: A2A_CARRIER_KIND, value, witnessRoot: EMPTY_WITNESS_ROOT }).bytes;
@@ -38,7 +39,7 @@ async function handle(order) {
 let input = ""; process.stdin.setEncoding("utf8"); process.stdin.on("data", (chunk) => { input += chunk; });
 process.stdin.on("end", async () => {
   try {
-    const message = parseA2aMessage(JSON.parse(input)), request = decodeSemantic(extractSenPart(parts(message)).bytes);
+    const message = identity(JSON.parse(input)), request = decodeSemantic(extractSenPart(parts(message)).bytes);
     if (request?.[0] !== "persistent-notebook-explainer-order" || request.length !== 2) throw new TypeError("foreign SEN operation");
     const result = await handle(request[1]);
     process.stdout.write(`${JSON.stringify(agentSenMessage(semanticBytes(["persistent-notebook-explainer-result", result]), "persistent-notebook-explainer-result.sen.cbor"))}\n`);
