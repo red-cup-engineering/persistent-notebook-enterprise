@@ -79,13 +79,13 @@ export function formSourceReconciliationDemand({ sources, expectedCurrentSourceI
   return { id: contentId(body), ...body };
 }
 
-function recordCore(receipt) {
+function receiptCore(receipt) {
   const { id: _id, ...core } = receipt;
   return core;
 }
 
-function exactRecordId(receipt) {
-  return receipt?.id === contentId(recordCore(receipt));
+function exactReceiptId(receipt) {
+  return receipt?.id === contentId(receiptCore(receipt));
 }
 
 async function record(category, value, options = {}) {
@@ -95,8 +95,8 @@ async function record(category, value, options = {}) {
     await recordSettlementRecord({ agentUrl: options.witnessJournalAgentUrl ?? process.env.SEAVT_DOCUMENT_AGENT, settlement: options.settlement, actor: ACTOR, category, recordedAt: at, record: { ...value } });
     return;
   }
-  const { custody: storage, categoryIndex } = await openSeavtDocumentStore(join(NODE_ROOT, "data", "witness-journal"));
-  await recordSettlementRecord({ custody: storage, categoryIndex, settlement: null, actor: ACTOR, category, recordedAt: at, record: { ...value } });
+  const { custody, categoryIndex } = await openSeavtDocumentStore(join(NODE_ROOT, "data", "witness-journal"));
+  await recordSettlementRecord({ custody, categoryIndex, settlement: null, actor: ACTOR, category, recordedAt: at, record: { ...value } });
 }
 
 export async function admitInventoryObservationResult(demand, activity, options = {}) {
@@ -106,14 +106,14 @@ export async function admitInventoryObservationResult(demand, activity, options 
   const{id:activityId,...activityBody}=activity;if(activityId!==contentId(activityBody))throw new TypeError("inventory provider acceptance identity is not content-valid");
   if(result.requestDigest!==demand?.providerRequestDigest||receipt?.requestDigest!==demand?.providerRequestDigest||receipt?.provider!==PROVIDER||receipt.notebookId!==notebookIdentity().notebookId)throw new TypeError("inventory result does not bind the exact notebook demand");
   if(receipt.mode!=="observe-live"||receipt.policy!=="observe-only"||receipt.outcome!=="observed")throw new TypeError("inventory receipt is not an observe-only successful observation");
-  const{ id:recordId,...recordBody}=receipt;if(recordId!==contentId(recordBody))throw new TypeError("inventory receipt identity is not content-valid");
+  const{ id:receiptId,...receiptBody}=receipt;if(receiptId!==contentId(receiptBody))throw new TypeError("inventory receipt identity is not content-valid");
   if(!Array.isArray(receipt.previousSources)||!Array.isArray(receipt.finalSources)||!Array.isArray(receipt.previousSourceIds)||!Array.isArray(receipt.finalSourceIds)||new Set(receipt.finalSourceIds).size!==receipt.finalSourceIds.length)throw new TypeError("inventory receipt lacks unique source rows and IDs");
   if(canonical(receipt.previousSources)!==canonical(receipt.finalSources)||canonical([...receipt.previousSourceIds].sort())!==canonical([...receipt.finalSourceIds].sort())||canonical([...(receipt.preservedSourceIds??[])].sort())!==canonical([...receipt.finalSourceIds].sort()))throw new TypeError("inventory observation changed its source set");
   if((receipt.desiredSources??[]).length!==0||(receipt.addedSources??[]).length!==0||(receipt.reusedDesiredSources??[]).length!==0||(receipt.deletedSourceIds??[]).length!==0)throw new TypeError("inventory observation carries a mutation claim");
   if(receipt.finalSourceSetDigest!==digest([...receipt.finalSourceIds].sort())||canonical(receipt.finalSources.map(row=>row?.id).sort())!==canonical([...receipt.finalSourceIds].sort()))throw new TypeError("inventory source rows do not match the final source-set identity");
   if(receipt.finalSources.some(row=>typeof row?.id!=="string"||row.id.length===0||row.status!=="ready"))throw new TypeError("inventory admission requires every observed source to be ready");
   const body={type:"PersistentNotebookInventoryObservationAdmission",notebook:notebookIdentity().id,demand:demand.id,provider:PROVIDER,providerResult:activity.id,providerReceipt:receipt.id,providerOperation:operation,sources:receipt.finalSources,finalSourceIds:[...receipt.finalSourceIds],finalSourceSetDigest:receipt.finalSourceSetDigest,admittedAt:options.at??new Date().toISOString()};
-  const validation={id:contentId(body),...body};await record("persistent-notebook.inventory-observation-admission",validation, options);return validation;
+  const admission={id:contentId(body),...body};await record("persistent-notebook.inventory-observation-admission",admission, options);return admission;
 }
 
 export async function admitSourceReconciliationResult(demand, activity, options = {}) {
@@ -124,7 +124,7 @@ export async function admitSourceReconciliationResult(demand, activity, options 
   if (result.requestDigest !== demand?.providerRequestDigest || receipt?.requestDigest !== demand?.providerRequestDigest) throw new TypeError("source result does not bind the exact provider request");
   if (receipt?.provider !== PROVIDER || receipt?.notebookId !== identity.notebookId || receipt?.outcome !== "reconciled") throw new TypeError("source receipt does not reconcile the owned notebook");
   if (receipt.policy !== sourceLifecyclePolicy().providerMutationPolicy || receipt.mode !== "reconcile-live") throw new TypeError("source receipt does not implement the adopted cumulative lifecycle");
-  if (!exactRecordId(receipt)) throw new TypeError("source receipt identity is not content-valid");
+  if (!exactReceiptId(receipt)) throw new TypeError("source receipt identity is not content-valid");
   if (!Array.isArray(receipt.finalSourceIds) || receipt.finalSourceIds.length === 0 || new Set(receipt.finalSourceIds).size !== receipt.finalSourceIds.length) throw new TypeError("source receipt has no unique final source set");
   if (receipt.finalSourceSetDigest !== digest([...receipt.finalSourceIds].sort())) throw new TypeError("source receipt final source-set digest is inconsistent");
   const expected = demand?.providerRequest?.desiredSources?.map(({ digest: sourceDigest, title }) => ({ digest: sourceDigest, title })) ?? null;
@@ -132,12 +132,12 @@ export async function admitSourceReconciliationResult(demand, activity, options 
   const incumbentIds = [...(demand?.providerRequest?.expectedCurrentSourceIds ?? [])].sort();
   if (canonical([...(receipt.previousSourceIds ?? [])].sort()) !== canonical(incumbentIds)) throw new TypeError("source receipt does not bind the accepted incumbent set");
   if (canonical([...(receipt.preservedSourceIds ?? [])].sort()) !== canonical(incumbentIds) || (receipt.deletedSourceIds ?? []).length !== 0) throw new TypeError("source receipt did not preserve every incumbent without deletion");
-  const validatedDesired = [...(receipt.addedSources ?? []), ...(receipt.reusedDesiredSources ?? [])];
-  if (canonical(validatedDesired.map(({ digest: sourceDigest, title }) => ({ digest: sourceDigest, title })).sort((a, b) => canonical(a).localeCompare(canonical(b)))) !== canonical([...expected].sort((a, b) => canonical(a).localeCompare(canonical(b))))) throw new TypeError("source receipt does not account for every cumulative desired identity");
-  if (validatedDesired.some((source) => typeof source.sourceId !== "string" || source.sourceId.length === 0)) throw new TypeError("source receipt desired identity lacks a stable source ID");
+  const admittedDesired = [...(receipt.addedSources ?? []), ...(receipt.reusedDesiredSources ?? [])];
+  if (canonical(admittedDesired.map(({ digest: sourceDigest, title }) => ({ digest: sourceDigest, title })).sort((a, b) => canonical(a).localeCompare(canonical(b)))) !== canonical([...expected].sort((a, b) => canonical(a).localeCompare(canonical(b))))) throw new TypeError("source receipt does not account for every cumulative desired identity");
+  if (admittedDesired.some((source) => typeof source.sourceId !== "string" || source.sourceId.length === 0)) throw new TypeError("source receipt desired identity lacks a stable source ID");
   const addedIds = (receipt.addedSources ?? []).map((source) => source.sourceId);
   const reusedIds = (receipt.reusedDesiredSources ?? []).map((source) => source.sourceId);
-  if (new Set([...addedIds, ...reusedIds]).size !== validatedDesired.length || addedIds.some((id) => incumbentIds.includes(id)) || reusedIds.some((id) => !incumbentIds.includes(id))) throw new TypeError("source receipt does not bind additions and reuses to distinct lawful source IDs");
+  if (new Set([...addedIds, ...reusedIds]).size !== admittedDesired.length || addedIds.some((id) => incumbentIds.includes(id)) || reusedIds.some((id) => !incumbentIds.includes(id))) throw new TypeError("source receipt does not bind additions and reuses to distinct lawful source IDs");
   const requiredFinalIds = [...new Set([...incumbentIds, ...addedIds])].sort();
   if (canonical([...receipt.finalSourceIds].sort()) !== canonical(requiredFinalIds)) throw new TypeError("source receipt final set is not the incumbent-plus-additions union");
   const body = {
@@ -154,19 +154,19 @@ export async function admitSourceReconciliationResult(demand, activity, options 
     finalSourceSetDigest: receipt.finalSourceSetDigest,
     admittedAt: options.at ?? new Date().toISOString(),
   };
-  const validation = { id: contentId(body), ...body };
-  await record("persistent-notebook.source-state-admission", validation, options);
-  return validation;
+  const admission = { id: contentId(body), ...body };
+  await record("persistent-notebook.source-state-admission", admission, options);
+  return admission;
 }
 
-function sourceValidationValid(validation) {
-  if (validation?.type !== "PersistentNotebookSourceStateAdmission" || validation.notebook !== notebookIdentity().id || validation.provider !== PROVIDER) return false;
-  const { id, ...body } = validation;
+function sourceAdmissionValid(admission) {
+  if (admission?.type !== "PersistentNotebookSourceStateAdmission" || admission.notebook !== notebookIdentity().id || admission.provider !== PROVIDER) return false;
+  const { id, ...body } = admission;
   return id === contentId(body);
 }
 
-export function formVideoDemand({ sourceAdmission: sourceValidation, prompt, format, style, language = "en", customer } = {}) {
-  if (!sourceValidationValid(sourceValidation)) throw new TypeError("video demand requires a content-valid local source-state admission");
+export function formVideoDemand({ sourceAdmission, prompt, format, style, language = "en", customer } = {}) {
+  if (!sourceAdmissionValid(sourceAdmission)) throw new TypeError("video demand requires a content-valid local source-state admission");
   if (typeof prompt !== "string" || prompt.trim() === "") throw new TypeError("video prompt must be non-empty");
   if (!['cinematic', 'explainer'].includes(format)) throw new TypeError("video format must be cinematic or explainer");
   if (typeof customer !== "string" || customer.trim() === "") throw new TypeError("video demand requires a customer enterprise actor");
@@ -177,12 +177,12 @@ export function formVideoDemand({ sourceAdmission: sourceValidation, prompt, for
   if (format === "cinematic" && language !== "en") throw new TypeError("cinematic language must be en");
   const providerRequest = {
     type: "NotebookLMRequest",
-    sources: sourceValidation.desiredSources,
+    sources: sourceAdmission.desiredSources,
     prompt,
     artifactType: "video",
     executionMode: "live",
     corpusMode: "reconciled-notebook",
-    notebookSourceReceiptId: sourceValidation.providerReceipt,
+    notebookSourceReceiptId: sourceAdmission.providerReceipt,
     videoFormat: format,
     videoStyle,
     videoLanguage: language,
@@ -197,7 +197,7 @@ export function formVideoDemand({ sourceAdmission: sourceValidation, prompt, for
     artifactType: "video",
     executionMode: "live",
     corpusMode: "reconciled-notebook",
-    notebookSourceReceiptId: sourceValidation.providerReceipt,
+    notebookSourceReceiptId: sourceAdmission.providerReceipt,
     sourcePacket: null,
     sourcePacketDigest: null,
     videoFormat: format,
@@ -208,7 +208,7 @@ export function formVideoDemand({ sourceAdmission: sourceValidation, prompt, for
     capacityCustomer: format === "cinematic" ? customer : null,
     cinematicAllocation: format === "cinematic" ? "mathematics-standing" : null,
   };
-  const body = { type: "PersistentNotebookVideoDemand", notebook: notebookIdentity().id, sourceAdmission: sourceValidation.id, customer, provider: PROVIDER, providerRequest, providerRequestDigest: digest(normalizedProviderRequest) };
+  const body = { type: "PersistentNotebookVideoDemand", notebook: notebookIdentity().id, sourceAdmission: sourceAdmission.id, customer, provider: PROVIDER, providerRequest, providerRequestDigest: digest(normalizedProviderRequest) };
   return { id: contentId(body), ...body };
 }
 
@@ -221,23 +221,23 @@ function secureArtifactUrl(value) {
   catch { return false; }
 }
 
-export async function admitVideoResult(demand, sourceValidation, activity, options = {}) {
-  if (!sourceValidationValid(sourceValidation) || demand?.sourceAdmission !== sourceValidation.id) throw new TypeError("video result is not bound to the admitted source state");
+export async function admitVideoResult(demand, sourceAdmission, activity, options = {}) {
+  if (!sourceAdmissionValid(sourceAdmission) || demand?.sourceAdmission !== sourceAdmission.id) throw new TypeError("video result is not bound to the admitted source state");
   const result = activity?.object;
   if (activity?.type !== "Accept" || activity.actor !== PROVIDER || result?.type !== "NotebookLMServiceResult" || result.disposition !== "artifact") throw new TypeError("video admission requires the provider's artifact acceptance");
-  if (result.requestDigest !== demand.providerRequestDigest || result.notebookSourceReceiptId !== sourceValidation.providerReceipt) throw new TypeError("provider result does not bind the video demand and source receipt");
-  const videoCapacityRecord = result.videoOverviewCapacityReceipt;
-  if (videoCapacityRecord?.type !== "NotebookLMVideoOverviewCapacityReceipt" || videoCapacityRecord.provider !== PROVIDER || videoCapacityRecord.law !== notebookIdentity().providerVideoOverviewCapacityContract || videoCapacityRecord.disposition !== "spent") throw new TypeError("video result lacks the provider's spent total Video Overview capacity receipt");
-  const { id: videoCapacityId, ...videoCapacityBody } = videoCapacityRecord;
+  if (result.requestDigest !== demand.providerRequestDigest || result.notebookSourceReceiptId !== sourceAdmission.providerReceipt) throw new TypeError("provider result does not bind the video demand and source receipt");
+  const videoCapacityReceipt = result.videoOverviewCapacityReceipt;
+  if (videoCapacityReceipt?.type !== "NotebookLMVideoOverviewCapacityReceipt" || videoCapacityReceipt.provider !== PROVIDER || videoCapacityReceipt.law !== notebookIdentity().providerVideoOverviewCapacityContract || videoCapacityReceipt.disposition !== "spent") throw new TypeError("video result lacks the provider's spent total Video Overview capacity receipt");
+  const { id: videoCapacityId, ...videoCapacityBody } = videoCapacityReceipt;
   if (videoCapacityId !== contentId(videoCapacityBody)) throw new TypeError("Video Overview capacity receipt identity is not content-valid");
-  if (videoCapacityRecord.requestDigest !== demand.providerRequestDigest || videoCapacityRecord.customer !== demand.providerRequest.videoCapacityCustomer || videoCapacityRecord.allocation !== demand.providerRequest.videoCapacityAllocation || videoCapacityRecord.format !== demand.providerRequest.videoFormat || videoCapacityRecord.invocation !== activity.inReplyTo) throw new TypeError("Video Overview capacity receipt does not bind the video demand and invocation");
-  const capacityRecord = result.cinematicCapacityReceipt;
+  if (videoCapacityReceipt.requestDigest !== demand.providerRequestDigest || videoCapacityReceipt.customer !== demand.providerRequest.videoCapacityCustomer || videoCapacityReceipt.allocation !== demand.providerRequest.videoCapacityAllocation || videoCapacityReceipt.format !== demand.providerRequest.videoFormat || videoCapacityReceipt.invocation !== activity.inReplyTo) throw new TypeError("Video Overview capacity receipt does not bind the video demand and invocation");
+  const capacityReceipt = result.cinematicCapacityReceipt;
   if (demand.providerRequest.videoFormat === "cinematic") {
-    if (capacityRecord?.type !== "NotebookLMCinematicCapacityReceipt" || capacityRecord.provider !== PROVIDER || capacityRecord.law !== notebookIdentity().providerCinematicCapacityContract || capacityRecord.disposition !== "spent") throw new TypeError("cinematic result lacks the provider's spent capacity receipt");
-    const { id: capacityId, ...capacityBody } = capacityRecord;
+    if (capacityReceipt?.type !== "NotebookLMCinematicCapacityReceipt" || capacityReceipt.provider !== PROVIDER || capacityReceipt.law !== notebookIdentity().providerCinematicCapacityContract || capacityReceipt.disposition !== "spent") throw new TypeError("cinematic result lacks the provider's spent capacity receipt");
+    const { id: capacityId, ...capacityBody } = capacityReceipt;
     if (capacityId !== contentId(capacityBody)) throw new TypeError("cinematic capacity receipt identity is not content-valid");
-    if (capacityRecord.requestDigest !== demand.providerRequestDigest || capacityRecord.customer !== demand.providerRequest.capacityCustomer || capacityRecord.allocation !== demand.providerRequest.cinematicAllocation || capacityRecord.invocation !== activity.inReplyTo) throw new TypeError("cinematic capacity receipt does not bind the video demand and invocation");
-  } else if (capacityRecord !== null) {
+    if (capacityReceipt.requestDigest !== demand.providerRequestDigest || capacityReceipt.customer !== demand.providerRequest.capacityCustomer || capacityReceipt.allocation !== demand.providerRequest.cinematicAllocation || capacityReceipt.invocation !== activity.inReplyTo) throw new TypeError("cinematic capacity receipt does not bind the video demand and invocation");
+  } else if (capacityReceipt !== null) {
     throw new TypeError("explainer result must not carry or consume cinematic capacity");
   }
   const carrier = result.artifact;
@@ -278,7 +278,7 @@ export async function admitVideoResult(demand, sourceValidation, activity, optio
     type: "PersistentNotebookVideoArtifactAdmission",
     notebook: notebookIdentity().id,
     demand: demand.id,
-    sourceAdmission: sourceValidation.id,
+    sourceAdmission: sourceAdmission.id,
     provider: PROVIDER,
     providerResult: activity.id,
     providerOperation: options.providerOperation ?? null,
@@ -286,10 +286,10 @@ export async function admitVideoResult(demand, sourceValidation, activity, optio
     providerRequestDigest: demand.providerRequestDigest,
     providerArtifactId: payload.providerArtifactId,
     deliveryKind,
-    videoOverviewCapacityReceipt: videoCapacityRecord.id,
-    videoOverviewCapacity: videoCapacityRecord,
-    cinematicCapacityReceipt: capacityRecord?.id ?? null,
-    cinematicCapacity: capacityRecord,
+    videoOverviewCapacityReceipt: videoCapacityReceipt.id,
+    videoOverviewCapacity: videoCapacityReceipt,
+    cinematicCapacityReceipt: capacityReceipt?.id ?? null,
+    cinematicCapacity: capacityReceipt,
     videoFormat: demand.providerRequest.videoFormat,
     videoStyle: demand.providerRequest.videoStyle,
     language: demand.providerRequest.videoLanguage,
@@ -299,7 +299,7 @@ export async function admitVideoResult(demand, sourceValidation, activity, optio
     importedCarrier: relative(NODE_ROOT, importedPath),
     admittedAt: options.at ?? new Date().toISOString(),
   };
-  const validation = { id: contentId(body), ...body };
-  await record("persistent-notebook.video-artifact-admission", validation, options);
-  return validation;
+  const admission = { id: contentId(body), ...body };
+  await record("persistent-notebook.video-artifact-admission", admission, options);
+  return admission;
 }
