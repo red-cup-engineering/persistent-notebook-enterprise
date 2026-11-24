@@ -1,0 +1,21 @@
+{
+  "type": "PersistentNotebookIdentity",
+  "id": "urn:emsenn:notebooklm-notebook:67510ce7-79b3-4caa-b25c-28e0d3911b5a",
+  "notebookId": "67510ce7-79b3-4caa-b25c-28e0d3911b5a",
+  "url": "https://notebooklm.google.com/notebook/67510ce7-79b3-4caa-b25c-28e0d3911b5a",
+  "owner": "urn:ame:persistent-notebook-enterprise",
+  "provider": "urn:ame:notebooklm-inference-team",
+  "providerServiceContract": "ni:///sha-256;2NqpJ7bfylY5y4vkXtdDHKzs3G60sBk5mXlhTBX3dhA",
+  "providerSourceReconciliationContract": "ni:///sha-256;rkZzmNxBv23GYW19FZORbgZ1HJz-JSbZGYAGahyJuHU",
+  "providerA2aSourceOperationContract": "ni:///sha-256;Ns0aQAYuFNt0skJZJWx3IbbaDEN7FHjSejgv6XlfUXc",
+  "providerA2aInventoryObservationContract": "ni:///sha-256;HvtkHS_I_l2DLLdjAoGa5RL21yGMHOcysBWC4reeVi8",
+  "providerAsyncVideoJobContract": "ni:///sha-256;pTa67HtdXIsykkadHge6_YVaFavbeoXy3qcHIQWg7KM",
+  "providerA2aVideoOperationContract": "ni:///sha-256;3FXeDRrIfpLw5hQB3wYdEuLrRsqTuK281ayQAkeu0M8",
+  "providerCinematicCapacityContract": "ni:///sha-256;4CZUOMOnmNap2m_1w7kazNI3fVookbnqb5EtyTElq2Q",
+  "providerVideoOverviewCapacityContract": "ni:///sha-256;Scxz1eSeWSHsFsvbl1H8VZ4quaa6OJHq5cSUxoD0d0g",
+  "providerExportRoot": "../../../../../../../red-cup-engineering/services/model-services-section/services/logical-inference-services-section/services/notebooklm-inference-team/content/exchanges",
+  "sourceLifecyclePolicy": "urn:emsenn:persistent-notebook-source-lifecycle:curated-cumulative-corpus:v1",
+  "status": "constituted",
+  "credentialCustody": "provider-only",
+  "recordedOn": "2026-07-21"
+}

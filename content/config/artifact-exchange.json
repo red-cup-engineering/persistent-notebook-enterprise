@@ -1,0 +1,15 @@
+{
+  "type": "PersistentNotebookArtifactExchangeActivation",
+  "status": "frozen-provider-runtime-misaddressed",
+  "desiredState": "provider-rebinding-required",
+  "serviceUnit": "emsweb-persistent-notebook-artifacts.service",
+  "host": "127.0.0.1",
+  "port": 18438,
+  "baseUrl": "http://127.0.0.1:18438",
+  "dataRoot": "data",
+  "exchangeRoot": "data/artifact-exchange",
+  "authorization": "per-artifact bearer capability",
+  "authorityWithheld": ["directory-listing", "unauthenticated-read", "mutation", "youtube-publication"],
+  "activatedAt": "2026-07-22T01:20:00.000Z",
+  "runtimeVerification": "2026-07-30: unit not installed and 127.0.0.1:18438 refused connection; do not treat the archived unit as deployed."
+}

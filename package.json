@@ -1,0 +1,40 @@
+{
+  "name": "@red-cup-engineering/persistent-notebook-enterprise",
+  "version": "0.1.2",
+  "private": true,
+  "type": "module",
+  "description": "The sovereign owner of one exact persistent NotebookLM notebook, its admitted source states, and imported artifact products.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/red-cup-engineering/persistent-notebook-enterprise.git"
+  },
+  "scripts": {
+    "check": "node --check src/notebook.mjs && node --check src/notebooklm-provider-client.mjs && node --check src/observe-inventory.mjs && node --check src/explainer-backend.mjs && node --check src/video-backend.mjs && node --check src/artifact-exchange.mjs && node --check src/executor-agent.mjs && node --check src/explainer-a2a-executor.mjs && node --check src/video-a2a-executor.mjs && node --check src/serve-explainer-a2a.mjs && node --check src/serve-video-a2a.mjs",
+    "verify": "npm run check"
+  },
+  "engines": {
+    "node": ">=22.18"
+  },
+  "dependencies": {
+    "@red-cup-engineering/a2a-engine": "^0.1.0",
+    "@red-cup-engineering/a2a-client": "^0.1.0",
+    "@red-cup-engineering/a2a-server": "^0.1.0",
+    "@red-cup-engineering/semiotic-eavt-engineering-services-section": "0.6.10",
+    "@red-cup-engineering/computer-code-engine": "^0.1.4",
+    "@red-cup-engineering/signcell": "^0.18.0 || 0.18.1-dev.0"
+  },
+  "bin": {
+    "observe-persistent-notebook-inventory": "./src/observe-inventory.mjs",
+    "serve-persistent-notebook-a2a": "./src/serve-explainer-a2a.mjs",
+    "serve-persistent-notebook-channel-video-a2a": "./src/serve-video-a2a.mjs",
+    "serve-persistent-notebook-artifacts": "./src/artifact-exchange.mjs"
+  },
+  "keywords": [
+    "sovereign-state-enterprise"
+  ],
+  "license": "MIT",
+  "funding": {
+    "type": "individual",
+    "url": "https://github.com/561-group/.github/blob/main/TIPS.md"
+  }
+}
