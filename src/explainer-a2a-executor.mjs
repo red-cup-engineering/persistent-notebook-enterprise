@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { sha256Digest } from "@red-cup-engineering/semiotic-content-address-system";
 import { identity } from "@red-cup-engineering/signcell/values";
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
@@ -7,11 +8,11 @@ import { admitJsonSemanticContent, EMPTY_WITNESS_ROOT, identifyJsonSemanticConte
 const A2A_CARRIER_KIND = "rsc-quiescent.a2a-json";
 const semanticBytes = (value) => identifyJsonSemanticContent({ objectKind: A2A_CARRIER_KIND, value, witnessRoot: EMPTY_WITNESS_ROOT }).bytes;
 const decodeSemantic = (bytes) => admitJsonSemanticContent({ bytes, objectKind: A2A_CARRIER_KIND }).value;
-import { ACTOR, contentId, digest, notebookIdentity } from "./notebook.mjs";
+import { ACTOR, notebookRecordId, notebookIdentity } from "./notebook.mjs";
 import { advanceExplainerOrder } from "./explainer-backend.mjs";
 
 const CUSTOMER = "urn:ame:youtube-channel-enterprise";
-function exact(value) { if (!value || typeof value !== "object") return false; const { id, ...body } = value; return id === contentId(body); }
+function exact(value) { if (!value || typeof value !== "object") return false; const { id, ...body } = value; return id === notebookRecordId(body); }
 function parts(message) { return Array.isArray(message?.parts) ? message.parts : []; }
 function validOrder(order) {
   const bytes = order?.source?.bytes;
@@ -19,11 +20,11 @@ function validOrder(order) {
   return exact(order) && order.type === "PersistentNotebookExplainerOrder" && order.customer === CUSTOMER && order.provider === ACTOR && order.notebook === notebookIdentity().id &&
     order.sourceLifecyclePolicy === "curated-cumulative-corpus" && order.format === "explainer" && order.language === "en" && typeof order.style === "string" && typeof order.prompt === "string" && order.prompt.trim() !== "" &&
     sourceBytes !== null && sourceBytes.length > 0 && sourceBytes.length <= 10 * 1024 * 1024 && order.source.byteLength === sourceBytes.length && order.source.mediaType === "text/markdown" &&
-    digest(sourceBytes) === order.source.digest && typeof order.source.title === "string" && order.source.title.trim() !== "" && !Object.prototype.hasOwnProperty.call(order.source, "path");
+    sha256Digest(sourceBytes) === order.source.digest && typeof order.source.title === "string" && order.source.title.trim() !== "" && !Object.prototype.hasOwnProperty.call(order.source, "path");
 }
 function refusal(order, code, at) {
   const body = { type: "PersistentNotebookExplainerServiceRefusal", provider: ACTOR, order: order?.id ?? null, disposition: "refused", code, retryable: ["provider-not-activated", "backend-not-contracted"].includes(code), externalEffects: [], refusedAt: at };
-  return { id: contentId(body), ...body };
+  return { id: notebookRecordId(body), ...body };
 }
 async function handle(order) {
   const at = process.env.PERSISTENT_NOTEBOOK_NOW ?? new Date().toISOString();

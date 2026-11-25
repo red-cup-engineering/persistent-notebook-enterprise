@@ -1,11 +1,12 @@
 #!/usr/bin/env node
+import { sha256Digest } from "@red-cup-engineering/semiotic-content-address-system";
 import { sha256 } from "@red-cup-engineering/semiotic-content-address-system";
 import { timingSafeEqual } from "node:crypto";
 import { createServer } from "node:http";
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { querySettlementRecords } from "@red-cup-engineering/semiotic-eavt-engineering-services-section/documents";
-import { NODE_ROOT, digest } from "./notebook.mjs";
+import { NODE_ROOT } from "./notebook.mjs";
 const CATEGORY = "persistent-notebook.explainer-order-state";
 function equal(left, right) { const a = Buffer.from(sha256(String(left))), b = Buffer.from(sha256(String(right))); return timingSafeEqual(a, b); }
 export async function serveArtifactExchange(options = {}) {
@@ -16,7 +17,7 @@ export async function serveArtifactExchange(options = {}) {
       const match = new URL(request.url, `http://${request.headers.host}`).pathname.match(/^\/artifacts\/([a-f0-9]{64})\.mp4$/u); if (!match) { response.writeHead(404).end(); return; }
       const candidates = (await querySettlementRecords(CATEGORY, { agentUrl: options.witnessJournalAgentUrl ?? process.env.SEAVT_DOCUMENT_AGENT })).filter((entry) => entry.status === "delivered" && entry.result?.delivery?.artifact?.sha256 === `sha256:${match[1]}`); if (candidates.length === 0) { response.writeHead(404).end(); return; }
       const supplied = String(request.headers.authorization ?? ""), row = candidates.find((entry) => entry.result.delivery.artifact.authorization?.scheme === "Bearer" && equal(supplied, `Bearer ${entry.result.delivery.artifact.authorization.token}`)); if (!row) { response.writeHead(401, { "www-authenticate": "Bearer" }).end(); return; }
-      const bytes = readFileSync(join(exchangeRoot, `${match[1]}.mp4`)); if (digest(bytes) !== row.result.delivery.artifact.sha256 || bytes.length !== row.result.delivery.artifact.byteLength) { response.writeHead(409).end(); return; }
+      const bytes = readFileSync(join(exchangeRoot, `${match[1]}.mp4`)); if (sha256Digest(bytes) !== row.result.delivery.artifact.sha256 || bytes.length !== row.result.delivery.artifact.byteLength) { response.writeHead(409).end(); return; }
       response.writeHead(200, { "content-type": "video/mp4", "content-length": bytes.length, "cache-control": "private, no-store" }); response.end(bytes);
     } catch { response.writeHead(500).end(); }
   });

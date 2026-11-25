@@ -17,11 +17,7 @@ const VIDEO_CAPACITY_ALLOCATIONS = new Map([
 ]);
 
 
-export function digest(value) {
-  return sha256Digest(value instanceof Uint8Array ? value : canonicalJson(value));
-}
-
-export function contentId(value) { return identifyJsonSemanticContent({ objectKind: "emsweb.persistent-notebook.record", value: value, witnessRoot: EMPTY_WITNESS_ROOT }).token; }
+export function notebookRecordId(value) { return identifyJsonSemanticContent({ objectKind: "emsweb.persistent-notebook.record", value: value, witnessRoot: EMPTY_WITNESS_ROOT }).token; }
 
 export function notebookIdentity() {
   return JSON.parse(readFileSync(join(NODE_ROOT, "content/config/notebook.json"), "utf8"));
@@ -35,8 +31,8 @@ export function formInventoryObservationDemand({ maxRuntimeSeconds = 300 } = {})
   if (!Number.isInteger(maxRuntimeSeconds) || maxRuntimeSeconds < 60 || maxRuntimeSeconds > 3600) throw new TypeError("inventory observation runtime must be 60..3600 seconds");
   const providerRequest = { type: "NotebookLMInventoryObservationRequest", notebookId: notebookIdentity().notebookId, policy: "observe-only", executionMode: "observe-live", expectedCurrentSourceIds: null, desiredSources: [], maxRuntimeSeconds };
   const { type: _type, ...normalized } = providerRequest;
-  const body = { type: "PersistentNotebookInventoryObservationDemand", notebook: notebookIdentity().id, provider: PROVIDER, providerRequest, providerRequestDigest: digest(normalized) };
-  return { id: contentId(body), ...body };
+  const body = { type: "PersistentNotebookInventoryObservationDemand", notebook: notebookIdentity().id, provider: PROVIDER, providerRequest, providerRequestDigest: sha256Digest(canonicalJson(normalized)) };
+  return { id: notebookRecordId(body), ...body };
 }
 
 function sourceManifest(sources) {
@@ -70,8 +66,8 @@ export function formSourceReconciliationDemand({ sources, expectedCurrentSourceI
     maxRuntimeSeconds,
   };
   const { type: _requestType, ...normalizedProviderRequest } = providerRequest;
-  const body = { type: "PersistentNotebookSourceReconciliationDemand", notebook: identity.id, sourceLifecyclePolicy: lifecycle.id, provider: PROVIDER, providerRequest, providerRequestDigest: digest(normalizedProviderRequest), desiredSourceManifestDigest: digest(desiredSources.map(({ digest: sourceDigest, title }) => ({ digest: sourceDigest, title }))) };
-  return { id: contentId(body), ...body };
+  const body = { type: "PersistentNotebookSourceReconciliationDemand", notebook: identity.id, sourceLifecyclePolicy: lifecycle.id, provider: PROVIDER, providerRequest, providerRequestDigest: sha256Digest(canonicalJson(normalizedProviderRequest)), desiredSourceManifestDigest: sha256Digest(canonicalJson(desiredSources.map(({ digest: sourceDigest, title }) => ({ digest: sourceDigest, title })))) };
+  return { id: notebookRecordId(body), ...body };
 }
 
 function receiptCore(receipt) {
@@ -80,7 +76,7 @@ function receiptCore(receipt) {
 }
 
 function exactReceiptId(receipt) {
-  return receipt?.id === contentId(receiptCore(receipt));
+  return receipt?.id === notebookRecordId(receiptCore(receipt));
 }
 
 async function record(category, value, options = {}) {
@@ -98,17 +94,17 @@ export async function admitInventoryObservationResult(demand, activity, options 
   const result=activity?.object,receipt=result?.receipt,operation=options.providerOperation;
   if(activity?.type!=="Accept"||activity.actor!==PROVIDER||result?.type!=="NotebookLMInventoryObservationResult")throw new TypeError("inventory admission requires the provider's observation acceptance");
   if(!/^urn:sha256:[a-f0-9]{64}$/u.test(operation??"")||activity.inReplyTo!==operation||receipt?.operationId!==operation)throw new TypeError("inventory observation does not bind the deterministic provider operation");
-  const{id:activityId,...activityBody}=activity;if(activityId!==contentId(activityBody))throw new TypeError("inventory provider acceptance identity is not content-valid");
+  const{id:activityId,...activityBody}=activity;if(activityId!==notebookRecordId(activityBody))throw new TypeError("inventory provider acceptance identity is not content-valid");
   if(result.requestDigest!==demand?.providerRequestDigest||receipt?.requestDigest!==demand?.providerRequestDigest||receipt?.provider!==PROVIDER||receipt.notebookId!==notebookIdentity().notebookId)throw new TypeError("inventory result does not bind the exact notebook demand");
   if(receipt.mode!=="observe-live"||receipt.policy!=="observe-only"||receipt.outcome!=="observed")throw new TypeError("inventory receipt is not an observe-only successful observation");
-  const{ id:receiptId,...receiptBody}=receipt;if(receiptId!==contentId(receiptBody))throw new TypeError("inventory receipt identity is not content-valid");
+  const{ id:receiptId,...receiptBody}=receipt;if(receiptId!==notebookRecordId(receiptBody))throw new TypeError("inventory receipt identity is not content-valid");
   if(!Array.isArray(receipt.previousSources)||!Array.isArray(receipt.finalSources)||!Array.isArray(receipt.previousSourceIds)||!Array.isArray(receipt.finalSourceIds)||new Set(receipt.finalSourceIds).size!==receipt.finalSourceIds.length)throw new TypeError("inventory receipt lacks unique source rows and IDs");
   if(canonicalJson(receipt.previousSources)!==canonicalJson(receipt.finalSources)||canonicalJson([...receipt.previousSourceIds].sort())!==canonicalJson([...receipt.finalSourceIds].sort())||canonicalJson([...(receipt.preservedSourceIds??[])].sort())!==canonicalJson([...receipt.finalSourceIds].sort()))throw new TypeError("inventory observation changed its source set");
   if((receipt.desiredSources??[]).length!==0||(receipt.addedSources??[]).length!==0||(receipt.reusedDesiredSources??[]).length!==0||(receipt.deletedSourceIds??[]).length!==0)throw new TypeError("inventory observation carries a mutation claim");
-  if(receipt.finalSourceSetDigest!==digest([...receipt.finalSourceIds].sort())||canonicalJson(receipt.finalSources.map(row=>row?.id).sort())!==canonicalJson([...receipt.finalSourceIds].sort()))throw new TypeError("inventory source rows do not match the final source-set identity");
+  if(receipt.finalSourceSetDigest!==sha256Digest(canonicalJson([...receipt.finalSourceIds].sort()))||canonicalJson(receipt.finalSources.map(row=>row?.id).sort())!==canonicalJson([...receipt.finalSourceIds].sort()))throw new TypeError("inventory source rows do not match the final source-set identity");
   if(receipt.finalSources.some(row=>typeof row?.id!=="string"||row.id.length===0||row.status!=="ready"))throw new TypeError("inventory admission requires every observed source to be ready");
   const body={type:"PersistentNotebookInventoryObservationAdmission",notebook:notebookIdentity().id,demand:demand.id,provider:PROVIDER,providerResult:activity.id,providerReceipt:receipt.id,providerOperation:operation,sources:receipt.finalSources,finalSourceIds:[...receipt.finalSourceIds],finalSourceSetDigest:receipt.finalSourceSetDigest,admittedAt:options.at??new Date().toISOString()};
-  const admission={id:contentId(body),...body};await record("persistent-notebook.inventory-observation-admission",admission, options);return admission;
+  const admission={id:notebookRecordId(body),...body};await record("persistent-notebook.inventory-observation-admission",admission, options);return admission;
 }
 
 export async function admitSourceReconciliationResult(demand, activity, options = {}) {
@@ -121,7 +117,7 @@ export async function admitSourceReconciliationResult(demand, activity, options 
   if (receipt.policy !== sourceLifecyclePolicy().providerMutationPolicy || receipt.mode !== "reconcile-live") throw new TypeError("source receipt does not implement the adopted cumulative lifecycle");
   if (!exactReceiptId(receipt)) throw new TypeError("source receipt identity is not content-valid");
   if (!Array.isArray(receipt.finalSourceIds) || receipt.finalSourceIds.length === 0 || new Set(receipt.finalSourceIds).size !== receipt.finalSourceIds.length) throw new TypeError("source receipt has no unique final source set");
-  if (receipt.finalSourceSetDigest !== digest([...receipt.finalSourceIds].sort())) throw new TypeError("source receipt final source-set digest is inconsistent");
+  if (receipt.finalSourceSetDigest !== sha256Digest(canonicalJson([...receipt.finalSourceIds].sort()))) throw new TypeError("source receipt final source-set digest is inconsistent");
   const expected = demand?.providerRequest?.desiredSources?.map(({ digest: sourceDigest, title }) => ({ digest: sourceDigest, title })) ?? null;
   if (canonicalJson(receipt.desiredSources) !== canonicalJson(expected)) throw new TypeError("source receipt desired sources do not match the demand");
   const incumbentIds = [...(demand?.providerRequest?.expectedCurrentSourceIds ?? [])].sort();
@@ -149,7 +145,7 @@ export async function admitSourceReconciliationResult(demand, activity, options 
     finalSourceSetDigest: receipt.finalSourceSetDigest,
     admittedAt: options.at ?? new Date().toISOString(),
   };
-  const admission = { id: contentId(body), ...body };
+  const admission = { id: notebookRecordId(body), ...body };
   await record("persistent-notebook.source-state-admission", admission, options);
   return admission;
 }
@@ -157,7 +153,7 @@ export async function admitSourceReconciliationResult(demand, activity, options 
 function sourceAdmissionValid(admission) {
   if (admission?.type !== "PersistentNotebookSourceStateAdmission" || admission.notebook !== notebookIdentity().id || admission.provider !== PROVIDER) return false;
   const { id, ...body } = admission;
-  return id === contentId(body);
+  return id === notebookRecordId(body);
 }
 
 export function formVideoDemand({ sourceAdmission, prompt, format, style, language = "en", customer } = {}) {
@@ -203,8 +199,8 @@ export function formVideoDemand({ sourceAdmission, prompt, format, style, langua
     capacityCustomer: format === "cinematic" ? customer : null,
     cinematicAllocation: format === "cinematic" ? "mathematics-standing" : null,
   };
-  const body = { type: "PersistentNotebookVideoDemand", notebook: notebookIdentity().id, sourceAdmission: sourceAdmission.id, customer, provider: PROVIDER, providerRequest, providerRequestDigest: digest(normalizedProviderRequest) };
-  return { id: contentId(body), ...body };
+  const body = { type: "PersistentNotebookVideoDemand", notebook: notebookIdentity().id, sourceAdmission: sourceAdmission.id, customer, provider: PROVIDER, providerRequest, providerRequestDigest: sha256Digest(canonicalJson(normalizedProviderRequest)) };
+  return { id: notebookRecordId(body), ...body };
 }
 
 function inside(root, path) {
@@ -224,13 +220,13 @@ export async function admitVideoResult(demand, sourceAdmission, activity, option
   const videoCapacityReceipt = result.videoOverviewCapacityReceipt;
   if (videoCapacityReceipt?.type !== "NotebookLMVideoOverviewCapacityReceipt" || videoCapacityReceipt.provider !== PROVIDER || videoCapacityReceipt.law !== notebookIdentity().providerVideoOverviewCapacityContract || videoCapacityReceipt.disposition !== "spent") throw new TypeError("video result lacks the provider's spent total Video Overview capacity receipt");
   const { id: videoCapacityId, ...videoCapacityBody } = videoCapacityReceipt;
-  if (videoCapacityId !== contentId(videoCapacityBody)) throw new TypeError("Video Overview capacity receipt identity is not content-valid");
+  if (videoCapacityId !== notebookRecordId(videoCapacityBody)) throw new TypeError("Video Overview capacity receipt identity is not content-valid");
   if (videoCapacityReceipt.requestDigest !== demand.providerRequestDigest || videoCapacityReceipt.customer !== demand.providerRequest.videoCapacityCustomer || videoCapacityReceipt.allocation !== demand.providerRequest.videoCapacityAllocation || videoCapacityReceipt.format !== demand.providerRequest.videoFormat || videoCapacityReceipt.invocation !== activity.inReplyTo) throw new TypeError("Video Overview capacity receipt does not bind the video demand and invocation");
   const capacityReceipt = result.cinematicCapacityReceipt;
   if (demand.providerRequest.videoFormat === "cinematic") {
     if (capacityReceipt?.type !== "NotebookLMCinematicCapacityReceipt" || capacityReceipt.provider !== PROVIDER || capacityReceipt.law !== notebookIdentity().providerCinematicCapacityContract || capacityReceipt.disposition !== "spent") throw new TypeError("cinematic result lacks the provider's spent capacity receipt");
     const { id: capacityId, ...capacityBody } = capacityReceipt;
-    if (capacityId !== contentId(capacityBody)) throw new TypeError("cinematic capacity receipt identity is not content-valid");
+    if (capacityId !== notebookRecordId(capacityBody)) throw new TypeError("cinematic capacity receipt identity is not content-valid");
     if (capacityReceipt.requestDigest !== demand.providerRequestDigest || capacityReceipt.customer !== demand.providerRequest.capacityCustomer || capacityReceipt.allocation !== demand.providerRequest.cinematicAllocation || capacityReceipt.invocation !== activity.inReplyTo) throw new TypeError("cinematic capacity receipt does not bind the video demand and invocation");
   } else if (capacityReceipt !== null) {
     throw new TypeError("explainer result must not carry or consume cinematic capacity");
@@ -244,7 +240,7 @@ export async function admitVideoResult(demand, sourceAdmission, activity, option
   if (typeof carrier.url === "string") {
     if (!secureArtifactUrl(carrier.url) || carrier.authorization?.scheme !== "Bearer" || typeof carrier.authorization.token !== "string" || carrier.authorization.token.length < 32) throw new TypeError("provider result lacks a secure attenuated video delivery capability");
     if (!/^urn:sha256:[a-f0-9]{64}$/u.test(options.providerOperation ?? "") || activity.inReplyTo !== options.providerOperation) throw new TypeError("remote provider result does not bind the deterministic video operation");
-    const { id: activityId, ...activityBody } = activity; if (activityId !== contentId(activityBody)) throw new TypeError("remote provider acceptance identity is not content-valid");
+    const { id: activityId, ...activityBody } = activity; if (activityId !== notebookRecordId(activityBody)) throw new TypeError("remote provider acceptance identity is not content-valid");
     if (typeof options.materializedProviderArtifact !== "string" || !isAbsolute(options.materializedProviderArtifact)) throw new TypeError("remote provider result lacks a customer-materialized carrier");
     const ingressRoot = realpathSync(options.materializedArtifactRoot ?? join(options.dataRoot ?? join(NODE_ROOT, "data"), "provider-ingress"));
     if (!existsSync(options.materializedProviderArtifact) || lstatSync(options.materializedProviderArtifact).isSymbolicLink() || !lstatSync(options.materializedProviderArtifact).isFile()) throw new TypeError("materialized provider carrier must be a regular non-symlink file");
@@ -261,14 +257,14 @@ export async function admitVideoResult(demand, sourceAdmission, activity, option
   }
   const bytes = readFileSync(providerPath);
   if (bytes.length < 12 || bytes.subarray(4, 8).toString("ascii") !== "ftyp") throw new TypeError("provider video carrier is not an ISO-BMFF MP4");
-  const sha256 = digest(bytes);
+  const sha256 = sha256Digest(bytes);
   if (payload.byteLength !== bytes.length || payload.sha256 !== sha256) throw new TypeError("provider video payload does not describe the exported carrier");
   const artifactRoot = resolve(options.artifactRoot ?? join(options.dataRoot ?? join(NODE_ROOT, "data"), "artifacts"));
   mkdirSync(artifactRoot, { recursive: true });
   const importedPath = join(artifactRoot, `${sha256.slice("sha256:".length)}.mp4`);
   if (!existsSync(importedPath)) writeFileSync(importedPath, bytes, { flag: "wx", mode: 0o600 });
   const imported = readFileSync(importedPath);
-  if (digest(imported) !== sha256 || imported.length !== bytes.length) throw new TypeError("imported video carrier does not match the provider bytes");
+  if (sha256Digest(imported) !== sha256 || imported.length !== bytes.length) throw new TypeError("imported video carrier does not match the provider bytes");
   const body = {
     type: "PersistentNotebookVideoArtifactAdmission",
     notebook: notebookIdentity().id,
@@ -294,7 +290,7 @@ export async function admitVideoResult(demand, sourceAdmission, activity, option
     importedCarrier: relative(NODE_ROOT, importedPath),
     admittedAt: options.at ?? new Date().toISOString(),
   };
-  const admission = { id: contentId(body), ...body };
+  const admission = { id: notebookRecordId(body), ...body };
   await record("persistent-notebook.video-artifact-admission", admission, options);
   return admission;
 }
