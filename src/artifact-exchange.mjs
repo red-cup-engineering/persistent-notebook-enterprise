@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-import { sha256Digest } from "@red-cup-engineering/semiotic-content-address-system";
-import { sha256 } from "@red-cup-engineering/semiotic-content-address-system";
+import { sha256, sha256Digest } from "@red-cup-engineering/semiotic-content-address-system";
 import { timingSafeEqual } from "node:crypto";
 import { createServer } from "node:http";
 import { readFileSync } from "node:fs";
