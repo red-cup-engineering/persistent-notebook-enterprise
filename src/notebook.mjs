@@ -1,5 +1,6 @@
+import { canonicalJson } from "@red-cup-engineering/json-engine/canonical-json";
+import { sha256Digest } from "@red-cup-engineering/semiotic-content-address-system";
 import { EMPTY_WITNESS_ROOT, identifyJsonSemanticContent } from "@red-cup-engineering/computer-code-engine/semiotic-expression-notation/semantic-content-identity";
-import { createHash } from "node:crypto";
 import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,15 +16,9 @@ const VIDEO_CAPACITY_ALLOCATIONS = new Map([
   ["urn:ame:climate-youtube-channel-enterprise", { allocation: "climate-place-daily", format: "explainer" }],
 ]);
 
-export function canonical(value) {
-  if (value instanceof Uint8Array) return `{\"$bytes\":${JSON.stringify(Buffer.from(value).toString("base64url"))}}`;
-  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
-  if (value && typeof value === "object") return `{${Object.keys(value).sort().filter((key) => value[key] !== undefined).map((key) => `${JSON.stringify(key)}:${canonical(value[key])}`).join(",")}}`;
-  return JSON.stringify(value);
-}
 
 export function digest(value) {
-  return `sha256:${createHash("sha256").update(value instanceof Uint8Array ? value : canonical(value)).digest("hex")}`;
+  return sha256Digest(value instanceof Uint8Array ? value : canonicalJson(value));
 }
 
 export function contentId(value) { return identifyJsonSemanticContent({ objectKind: "emsweb.persistent-notebook.record", value: value, witnessRoot: EMPTY_WITNESS_ROOT }).token; }
@@ -55,7 +50,7 @@ function sourceManifest(sources) {
     if (Object.prototype.hasOwnProperty.call(source, "path")) throw new TypeError(`sources[${index}] must not convey foreign filesystem authority`);
     return { digest: source.digest, title: source.title, mediaType: source.mediaType, byteLength: source.byteLength };
   });
-  const identities = manifest.map(({ digest: sourceDigest, title }) => canonical({ digest: sourceDigest, title }));
+  const identities = manifest.map(({ digest: sourceDigest, title }) => canonicalJson({ digest: sourceDigest, title }));
   if (new Set(identities).size !== identities.length) throw new TypeError("sources must have unique digest/title identities");
   return manifest;
 }
@@ -108,9 +103,9 @@ export async function admitInventoryObservationResult(demand, activity, options 
   if(receipt.mode!=="observe-live"||receipt.policy!=="observe-only"||receipt.outcome!=="observed")throw new TypeError("inventory receipt is not an observe-only successful observation");
   const{ id:receiptId,...receiptBody}=receipt;if(receiptId!==contentId(receiptBody))throw new TypeError("inventory receipt identity is not content-valid");
   if(!Array.isArray(receipt.previousSources)||!Array.isArray(receipt.finalSources)||!Array.isArray(receipt.previousSourceIds)||!Array.isArray(receipt.finalSourceIds)||new Set(receipt.finalSourceIds).size!==receipt.finalSourceIds.length)throw new TypeError("inventory receipt lacks unique source rows and IDs");
-  if(canonical(receipt.previousSources)!==canonical(receipt.finalSources)||canonical([...receipt.previousSourceIds].sort())!==canonical([...receipt.finalSourceIds].sort())||canonical([...(receipt.preservedSourceIds??[])].sort())!==canonical([...receipt.finalSourceIds].sort()))throw new TypeError("inventory observation changed its source set");
+  if(canonicalJson(receipt.previousSources)!==canonicalJson(receipt.finalSources)||canonicalJson([...receipt.previousSourceIds].sort())!==canonicalJson([...receipt.finalSourceIds].sort())||canonicalJson([...(receipt.preservedSourceIds??[])].sort())!==canonicalJson([...receipt.finalSourceIds].sort()))throw new TypeError("inventory observation changed its source set");
   if((receipt.desiredSources??[]).length!==0||(receipt.addedSources??[]).length!==0||(receipt.reusedDesiredSources??[]).length!==0||(receipt.deletedSourceIds??[]).length!==0)throw new TypeError("inventory observation carries a mutation claim");
-  if(receipt.finalSourceSetDigest!==digest([...receipt.finalSourceIds].sort())||canonical(receipt.finalSources.map(row=>row?.id).sort())!==canonical([...receipt.finalSourceIds].sort()))throw new TypeError("inventory source rows do not match the final source-set identity");
+  if(receipt.finalSourceSetDigest!==digest([...receipt.finalSourceIds].sort())||canonicalJson(receipt.finalSources.map(row=>row?.id).sort())!==canonicalJson([...receipt.finalSourceIds].sort()))throw new TypeError("inventory source rows do not match the final source-set identity");
   if(receipt.finalSources.some(row=>typeof row?.id!=="string"||row.id.length===0||row.status!=="ready"))throw new TypeError("inventory admission requires every observed source to be ready");
   const body={type:"PersistentNotebookInventoryObservationAdmission",notebook:notebookIdentity().id,demand:demand.id,provider:PROVIDER,providerResult:activity.id,providerReceipt:receipt.id,providerOperation:operation,sources:receipt.finalSources,finalSourceIds:[...receipt.finalSourceIds],finalSourceSetDigest:receipt.finalSourceSetDigest,admittedAt:options.at??new Date().toISOString()};
   const admission={id:contentId(body),...body};await record("persistent-notebook.inventory-observation-admission",admission, options);return admission;
@@ -128,18 +123,18 @@ export async function admitSourceReconciliationResult(demand, activity, options 
   if (!Array.isArray(receipt.finalSourceIds) || receipt.finalSourceIds.length === 0 || new Set(receipt.finalSourceIds).size !== receipt.finalSourceIds.length) throw new TypeError("source receipt has no unique final source set");
   if (receipt.finalSourceSetDigest !== digest([...receipt.finalSourceIds].sort())) throw new TypeError("source receipt final source-set digest is inconsistent");
   const expected = demand?.providerRequest?.desiredSources?.map(({ digest: sourceDigest, title }) => ({ digest: sourceDigest, title })) ?? null;
-  if (canonical(receipt.desiredSources) !== canonical(expected)) throw new TypeError("source receipt desired sources do not match the demand");
+  if (canonicalJson(receipt.desiredSources) !== canonicalJson(expected)) throw new TypeError("source receipt desired sources do not match the demand");
   const incumbentIds = [...(demand?.providerRequest?.expectedCurrentSourceIds ?? [])].sort();
-  if (canonical([...(receipt.previousSourceIds ?? [])].sort()) !== canonical(incumbentIds)) throw new TypeError("source receipt does not bind the accepted incumbent set");
-  if (canonical([...(receipt.preservedSourceIds ?? [])].sort()) !== canonical(incumbentIds) || (receipt.deletedSourceIds ?? []).length !== 0) throw new TypeError("source receipt did not preserve every incumbent without deletion");
+  if (canonicalJson([...(receipt.previousSourceIds ?? [])].sort()) !== canonicalJson(incumbentIds)) throw new TypeError("source receipt does not bind the accepted incumbent set");
+  if (canonicalJson([...(receipt.preservedSourceIds ?? [])].sort()) !== canonicalJson(incumbentIds) || (receipt.deletedSourceIds ?? []).length !== 0) throw new TypeError("source receipt did not preserve every incumbent without deletion");
   const admittedDesired = [...(receipt.addedSources ?? []), ...(receipt.reusedDesiredSources ?? [])];
-  if (canonical(admittedDesired.map(({ digest: sourceDigest, title }) => ({ digest: sourceDigest, title })).sort((a, b) => canonical(a).localeCompare(canonical(b)))) !== canonical([...expected].sort((a, b) => canonical(a).localeCompare(canonical(b))))) throw new TypeError("source receipt does not account for every cumulative desired identity");
+  if (canonicalJson(admittedDesired.map(({ digest: sourceDigest, title }) => ({ digest: sourceDigest, title })).sort((a, b) => canonicalJson(a).localeCompare(canonicalJson(b)))) !== canonicalJson([...expected].sort((a, b) => canonicalJson(a).localeCompare(canonicalJson(b))))) throw new TypeError("source receipt does not account for every cumulative desired identity");
   if (admittedDesired.some((source) => typeof source.sourceId !== "string" || source.sourceId.length === 0)) throw new TypeError("source receipt desired identity lacks a stable source ID");
   const addedIds = (receipt.addedSources ?? []).map((source) => source.sourceId);
   const reusedIds = (receipt.reusedDesiredSources ?? []).map((source) => source.sourceId);
   if (new Set([...addedIds, ...reusedIds]).size !== admittedDesired.length || addedIds.some((id) => incumbentIds.includes(id)) || reusedIds.some((id) => !incumbentIds.includes(id))) throw new TypeError("source receipt does not bind additions and reuses to distinct lawful source IDs");
   const requiredFinalIds = [...new Set([...incumbentIds, ...addedIds])].sort();
-  if (canonical([...receipt.finalSourceIds].sort()) !== canonical(requiredFinalIds)) throw new TypeError("source receipt final set is not the incumbent-plus-additions union");
+  if (canonicalJson([...receipt.finalSourceIds].sort()) !== canonicalJson(requiredFinalIds)) throw new TypeError("source receipt final set is not the incumbent-plus-additions union");
   const body = {
     type: "PersistentNotebookSourceStateAdmission",
     notebook: identity.id,

@@ -1,12 +1,13 @@
 #!/usr/bin/env node
-import { createHash, timingSafeEqual } from "node:crypto";
+import { sha256 } from "@red-cup-engineering/semiotic-content-address-system";
+import { timingSafeEqual } from "node:crypto";
 import { createServer } from "node:http";
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { querySettlementRecords } from "@red-cup-engineering/semiotic-eavt-engineering-services-section/documents";
 import { NODE_ROOT, digest } from "./notebook.mjs";
 const CATEGORY = "persistent-notebook.explainer-order-state";
-function equal(left, right) { const a = createHash("sha256").update(String(left)).digest(), b = createHash("sha256").update(String(right)).digest(); return timingSafeEqual(a, b); }
+function equal(left, right) { const a = Buffer.from(sha256(String(left))), b = Buffer.from(sha256(String(right))); return timingSafeEqual(a, b); }
 export async function serveArtifactExchange(options = {}) {
   const dataRoot = resolve(options.dataRoot ?? join(NODE_ROOT, "data")), exchangeRoot = resolve(options.exchangeRoot ?? join(dataRoot, "artifact-exchange")), host = options.host ?? "127.0.0.1", port = options.port ?? 0;
   const server = createServer(async (request, response) => {

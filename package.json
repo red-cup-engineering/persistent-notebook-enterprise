@@ -16,11 +16,13 @@
     "node": ">=22.18"
   },
   "dependencies": {
-    "@red-cup-engineering/a2a-engine": "^0.1.0",
     "@red-cup-engineering/a2a-client": "^0.1.0",
+    "@red-cup-engineering/a2a-engine": "^0.1.0",
     "@red-cup-engineering/a2a-server": "^0.1.0",
-    "@red-cup-engineering/semiotic-eavt-engineering-services-section": "0.6.10",
     "@red-cup-engineering/computer-code-engine": "^0.1.4",
+    "@red-cup-engineering/json-engine": "0.5.5-dev.0",
+    "@red-cup-engineering/semiotic-content-address-system": "0.1.9",
+    "@red-cup-engineering/semiotic-eavt-engineering-services-section": "0.6.10",
     "@red-cup-engineering/signcell": "^0.18.0 || 0.18.1-dev.0"
   },
   "bin": {
